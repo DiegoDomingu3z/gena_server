@@ -1,0 +1,70 @@
+import { accountsService } from "../services/AccountsService";
+import BaseController from "../utils/BaseController";
+import { logger } from "../utils/Logger";
+
+export class AccountsController extends BaseController {
+    constructor() {
+        super('/api/account')
+        this.router
+            .post('/create', this.createAccount)
+            .post('/login', this.login)
+
+    }
+
+
+
+
+    /**
+* CREATE ACCOUNT
+* Collects all data from body that user sent
+*  accountData is sent to accountService to handle logic
+* Handles all status to be sent back
+* @param {Object} req.body
+ @returns {Object} createdDate
+*/
+
+    async createAccount(req, res, next) {
+        try {
+            const accountData = req.body
+            const createdData = await accountsService.createAccount(accountData)
+            if (createdData == 401) {
+                res.status(401).send("ACCOUNT DATA DOES NOT CONTAIN ALL FIELDS")
+            } else if (createdData == "USERNAME EXISTS ALREADY") {
+                res.status(401).send("USERNAME EXISTS ALREADY")
+            } else {
+                res.status(200).send(createdData)
+            }
+        } catch (error) {
+            logger.error(error)
+            next()
+        }
+    }
+
+
+
+    /**
+* \LOGIN
+* Collects all data from body that user sent
+* loginDATA is sent to accountService to handle logic
+* Handles all status to be sent back
+* @param {Object} req.body
+@returns {Object} accountData
+*/
+
+    async login(req, res, next) {
+        try {
+            const loginData = req.body
+            const accountData = await accountsService.login(loginData)
+            if (accountData == 404) {
+                res.status(404).send("ACCOUNT DOES NOT EXISTS")
+            } else if (accountData == 401) {
+                res.status(401).send("INCORRECT Password")
+            } else {
+                res.status(200).send(accountData)
+            }
+        } catch (error) {
+            logger.error(error)
+            next()
+        }
+    }
+}
