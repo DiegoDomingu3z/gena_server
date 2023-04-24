@@ -8,6 +8,9 @@ export class AccountsController extends BaseController {
         this.router
             .post('/create', this.createAccount)
             .post('/login', this.login)
+            .put('/logout', this.logout)
+            .delete('/delete-user/:id', this.deleteUser)
+
 
     }
 
@@ -67,4 +70,40 @@ export class AccountsController extends BaseController {
             next()
         }
     }
+
+
+    async logout(req, res, next) {
+        try {
+            const token = req.header('Authorization')
+            const status = await accountsService.logout(token)
+            if (status == 404) {
+                res.status(404).send("UNABLE TO LOGOUT")
+            } else if (status == 200) {
+                res.status(200).send("SUCCESSFUL LOGOUT")
+            }
+        } catch (error) {
+            logger.error(error)
+            next(error)
+        }
+    }
+
+
+    async deleteUser(req, res, next) {
+        try {
+            const isAdmin = req.header('Authorization')
+            const user = req.params.id
+            const data = await accountsService.removeUser(isAdmin, user)
+            if (data == 401) {
+                res.status(401).send("YOU DON'T HAVE PERMISSION TO DO THIS ACTION")
+            } else if (data == 404) {
+                res.status(404).send("USER TO DELETE NOT FOUND")
+            } else {
+                res.status(200).send(data)
+            }
+        } catch (error) {
+            logger.error(error)
+            next(error)
+        }
+    }
+
 }
