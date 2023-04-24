@@ -90,11 +90,54 @@ class AccountsService {
                 if (checkPass == true) {
                     const newGeneratedToken = await authTokens.authToken()
                     const updatedUserDoc = await dbContext.Account.findOneAndUpdate({ userName: user.userName }, { accessToken: newGeneratedToken }, { returnDocument: true })
-                    return updatedUserDoc
+                    const updatedDoc = await dbContext.Account.findOne({ accessToken: newGeneratedToken })
+                    return updatedDoc
                 } else {
                     return 401
                 }
             }
+        } catch (error) {
+            logger.error(error)
+            return error
+        }
+    }
+
+
+
+    async logout(token) {
+        try {
+            const user = await dbContext.Account.findOneAndUpdate({
+                accessToken: token
+            },
+                {
+                    $unset: { accessToken: '' }
+                })
+            if (user == null) {
+                return Promise.resolve(404)
+            } else if (user) {
+                return Promise.resolve(200)
+            }
+        } catch (error) {
+            logger.error(error)
+            return error
+        }
+    }
+
+
+    async removeUser(adminToken, userId) {
+        try {
+            const isAdmin = await dbContext.Account.findOne({ accessToken: adminToken })
+            if (isAdmin.privileges == "admin") {
+                const data = await dbContext.Account.findByIdAndDelete(userId)
+                if (data == null) {
+                    return Promise.resolve(404)
+                } else {
+                    return data
+                }
+            } else if (isAdmin.privileges != "admin") {
+                return Promise.resolve(401)
+            }
+
         } catch (error) {
             logger.error(error)
             return error
