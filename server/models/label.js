@@ -19,6 +19,9 @@ export const labelSchema = new Schema({
     createdOn: { type: Date, required: true, default: Date.now() },
     updatedOn: { type: Date, required: true, default: Date.now() },
     categoryId: { type: ObjectId, ref: 'Category', required: true },
-    subCategoryId: { type: ObjectId, ref: 'SubCategory', required: true }
+    categoryName: { type: String, required: true },
+    subCategoryId: { type: ObjectId, ref: 'SubCategory', required: true },
+    subCategoryName: { type: String, required: true },
+    fileName: { type: String, required: true }
 })
 

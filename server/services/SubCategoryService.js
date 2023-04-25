@@ -13,21 +13,23 @@ class SubCategoryService {
             if (!category) {
                 logger.log("CATEGORY DOES NOT EXIST")
                 return 404
-            }
-            if (!user) {
-                return 404
-            } else if (user.privileges != 'admin') {
-                return 401
             } else {
-                const path = await mkdir(`${category.path}`, { recursive: true })
-                const cat = await dbContext.SubCategory.create({
-                    name: data.name,
-                    creatorId: user._id,
-                    path: `${category.path}/${data.name}`,
-                    categoryId: catId
-                })
-                return cat
+                if (!user) {
+                    return 404
+                } else if (user.privileges != 'admin') {
+                    return 401
+                } else {
+                    const path = await mkdir(`${category.path}/${data.name}`, { recursive: true })
+                    const cat = await dbContext.SubCategory.create({
+                        name: data.name,
+                        creatorId: user._id,
+                        path: `${category.path}`,
+                        categoryId: catId
+                    })
+                    return cat
+                }
             }
+
         } catch (error) {
             logger.error(error)
             return error

@@ -2,6 +2,7 @@ import mongoose from 'mongoose'
 import { AccountSchema } from '../models/Accounts'
 import { CategorySchema } from '../models/Category'
 import { SubCategorySchema } from '../models/SubCategory'
+import { labelSchema } from '../models/label'
 class DbContext {
 
     Account = mongoose.model('Account', AccountSchema)
@@ -10,6 +11,7 @@ class DbContext {
 
     SubCategory = mongoose.model('SubCategory', SubCategorySchema)
 
+    Label = mongoose.model('Label', labelSchema)
 }
 
 
