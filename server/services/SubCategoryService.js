@@ -3,7 +3,7 @@ import { logger } from "../utils/Logger"
 const fs = require('fs');
 const util = require('util');
 const mkdir = util.promisify(fs.mkdir);
-
+const rename = util.promisify(fs.rename);
 class SubCategoryService {
 
     async createSubCat(token, catId, data) {
@@ -76,6 +76,35 @@ class SubCategoryService {
                 return Promise.resolve(404)
             } else {
                 return cat
+            }
+        } catch (error) {
+            logger.error(error)
+            return error
+        }
+    }
+
+
+    async updateSubCat(token, id, data) {
+        try {
+            const user = await dbContext.Account.findOne({ accessToken: token })
+            if (!user) {
+                return Promise.resolve(403)
+            } else {
+                const subCat = await dbContext.SubCategory.findById(id)
+                if (!subCat) {
+                    return Promise.resolve(404)
+                } else {
+
+                    data['updatedOn'] = Date.now()
+                    const updatedDoc = await dbContext.SubCategory.findByIdAndUpdate(id, data)
+                    const doc = await dbContext.SubCategory.findById(id)
+                    const updatedLabel = await dbContext.Label.updateMany({ subCategoryId: id }, { $set: { subCategoryName: doc.name } })
+                    const category = await dbContext.Category.findById(doc.categoryId)
+                    const pathToUpdated = `${doc.path}/${subCat.name}`
+                    const newPath = `../../../repos/inventive/gena_2/src/pdflabels/${category.name}/${doc.name}`
+                    await rename(pathToUpdated, newPath)
+                    return doc
+                }
             }
         } catch (error) {
             logger.error(error)

@@ -10,6 +10,7 @@ export class SubCategoryController extends BaseController {
             .get('/all', this.getAll)
             .get('/incat/:id', this.getAllInCategory)
             .get('/:id', this.getById)
+            .put('/update/:id', this.updateSubCat)
     }
 
 
@@ -70,6 +71,26 @@ export class SubCategoryController extends BaseController {
             const data = await subCategoryService.getById(subCatId)
             if (data == 404) {
                 res.status(404).send("SUBCATEGORY NOT FOUND")
+            } else {
+                res.status(200).send(data)
+            }
+        } catch (error) {
+            logger.error(error)
+            next()
+        }
+    }
+
+
+    async updateSubCat(req, res, next) {
+        try {
+            const token = req.header('Authorization')
+            const subCatId = req.params.id
+            const newData = req.body
+            const data = await subCategoryService.updateSubCat(token, subCatId, newData)
+            if (data == 404) {
+                res.status(404).send("SUBCATEGORY NOT FOUND")
+            } else if (data == 403) {
+                res.status(403).send("YOU DON'T HAVE PERMISSION TO DO THIS ACTION")
             } else {
                 res.status(200).send(data)
             }
