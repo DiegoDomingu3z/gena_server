@@ -14,7 +14,7 @@ export const AccountSchema = new Schema({
     departmentId: { type: String, ref: 'Department', required: true },
     teamLead: { type: String, required: true },
     groupLead: { type: String, required: true },
-    privileges: { type: String, enum: ["admin", "group-lead", "team-lead", "team-member"] },
+    privileges: { type: String, enum: ["admin", "group-lead", "team-lead", "team-member", "printshop"] },
     companyName: { type: String, enum: ["IG", "IWS"] },
     orderCount: { type: Number },
     accessToken: { type: String, unique: true },

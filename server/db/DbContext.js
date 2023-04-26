@@ -3,6 +3,7 @@ import { AccountSchema } from '../models/Accounts'
 import { CategorySchema } from '../models/Category'
 import { SubCategorySchema } from '../models/SubCategory'
 import { labelSchema } from '../models/label'
+import { OrderSchema } from '../models/Order'
 class DbContext {
 
     Account = mongoose.model('Account', AccountSchema)
@@ -12,6 +13,8 @@ class DbContext {
     SubCategory = mongoose.model('SubCategory', SubCategorySchema)
 
     Label = mongoose.model('Label', labelSchema)
+
+    Order = mongoose.model('Order', OrderSchema)
 }
 
 
