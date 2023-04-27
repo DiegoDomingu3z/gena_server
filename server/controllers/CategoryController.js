@@ -12,11 +12,7 @@ export class CategoryController extends BaseController {
     }
 
 
-    /**
-           * GetALl
-           * find users account and removes accessToken
-           @returns {StatusCode} accountData
-           */
+
     async getAll(req, res, next) {
         try {
             const data = await categoryService.getAll()

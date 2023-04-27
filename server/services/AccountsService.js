@@ -25,8 +25,6 @@ class AccountsService {
                 !data.lastName ||
                 !data.userName ||
                 !data.password ||
-                !data.department ||
-                !data.departmentId ||
                 !data.teamLead ||
                 !data.groupLead ||
                 !data.privileges ||
