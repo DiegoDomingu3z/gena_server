@@ -35,7 +35,8 @@ class LabelsService {
                     categoryId: catData._id,
                     subCategoryName: subCatData.name,
                     subCategoryId: subCatData._id,
-                    fileName: data.fileName
+                    fileName: data.fileName,
+                    isKanban: data.isKanban
                 }
             } else if (data.isBulkLabel == false) {
                 labelData = {
@@ -50,7 +51,8 @@ class LabelsService {
                     categoryId: catData._id,
                     subCategoryName: subCatData.name,
                     subCategoryId: subCatData._id,
-                    fileName: data.fileName
+                    fileName: data.fileName,
+                    isKanban: data.isKanban
 
                 }
             }

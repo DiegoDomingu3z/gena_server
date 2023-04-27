@@ -72,6 +72,13 @@ export class AccountsController extends BaseController {
     }
 
 
+
+
+    /**
+* LOGOUT
+* Gets token from header and send to service
+@returns {StatusCode} accountData
+*/
     async logout(req, res, next) {
         try {
             const token = req.header('Authorization')
@@ -87,7 +94,12 @@ export class AccountsController extends BaseController {
         }
     }
 
-
+    /**
+   * LOGOUT
+   * Gets token from header and send to service
+   * Gets id of user to be delete from params
+   @returns {StatusCode} accountData
+   */
     async deleteUser(req, res, next) {
         try {
             const isAdmin = req.header('Authorization')

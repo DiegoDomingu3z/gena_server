@@ -14,6 +14,7 @@ export const OrderSchema = new Schema({
     status: { type: String, enum: ['waiting for approval', 'approved', 'processing', 'printed'] },
     labels: [
         {
+            qty: { type: Number, required: true },
             labelId: { type: String, required: true },
             textToPut: [
                 {

@@ -41,7 +41,17 @@ export class OrderController extends BaseController {
         try {
             const token = req.header("Authorization")
             const data = req.body
-            // const OrderId
+            const orderId = req.params.id
+            const updatedOrder = await orderService.updatedOrder(token, data, orderId)
+            if (updatedOrder == 404) {
+                res.status(400).send("USER OR ORDER NOT FOUND")
+            } else if (updatedOrder == 403) {
+                res.status(403).send("YOU DON'T HAVE ACCESS TO PERFORM THIS ACTION")
+            } else if (updatedOrder == 405) {
+                res.status(405).send("CAN't UPDATE ORDER SINCE IT IS ALREADY PROCESSING IN PRINT SHOP")
+            } else {
+                res.status(200).send(updatedOrder)
+            }
         } catch (error) {
             logger.error(error)
             next()

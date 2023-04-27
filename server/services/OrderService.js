@@ -28,7 +28,8 @@ class OrderService {
                     creatorName: `${user.firstName} ${user.lastName}`,
                     notes: data.notes,
                     status: status,
-                    labels: data.labels
+                    labels: data.labels,
+                    qty: data.qty
                 }
                 const createdOrder = await dbContext.Order.create(sanatizedData)
                 return createdOrder
@@ -173,17 +174,17 @@ class OrderService {
         try {
             const user = await this.checkIfUserExists(token)
             if (user == 400) {
-                return Promise.reject(400)
+                return Promise.resolve(400)
             } else {
                 const order = await dbContext.Order.findById(orderId)
                 if (!order) {
-                    return Promise.reject(400)
+                    return Promise.resolve(400)
                 } else {
                     if (!order.creatorId.equals(user._id)) {
-                        return Promise.reject(403)
+                        return Promise.resolve(403)
                     } else {
                         if (order.status == 'processing') {
-                            return Promise.reject(403)
+                            return Promise.resolve(403)
                         } else {
                             // finds the index of the label that has the same id and the one sent
                             const labelIndex = order.labels.findIndex((label) => label._id.toString() === labelId.toString());
@@ -215,6 +216,59 @@ class OrderService {
         }
     }
 
+
+
+    async updatedOrder(token, data, orderId) {
+        try {
+            const needsApproval = []
+            let status;
+            const user = await this.checkIfUserExists(token)
+            if (user == 400) {
+                return Promise.resolve(400)
+            } else {
+                const order = await dbContext.Order.findById(orderId)
+                if (!order) {
+                    return Promise.resolve(400)
+                } else if (order.status == 'processing') {
+                    return Promise.resolve(405)
+                } else if (!order.creatorId.equals(user._id)) {
+                    return Promise.resolve(403)
+                } else {
+                    if (data.labels) {
+                        for (let i = 0; i < data.labels.length; i++) {
+                            const label = data.labels[i];
+                            const check = await dbContext.Label.findById(label.labelId)
+                            if (check.isBulkLabel == true) {
+                                needsApproval.push(label._id)
+                            }
+                        }
+                    }
+                    if (needsApproval.length > 0) {
+                        status = 'waiting for approval'
+                        // EMAIL LEAD
+                        logger.log("EMAIL FOR LEAD WOULD BE SENT")
+                    } else {
+                        status = order.status
+                    }
+                    const notes = data.notes || order.notes
+                    // if new labels are sent they will have to send old labels and and new ones
+                    const labels = data.labels || order.labels
+                    const updated = new Date()
+                    await dbContext.Order.findOneAndUpdate(orderId, {
+                        notes: notes,
+                        labels: labels,
+                        status: status,
+                        updatedOn: updated
+                    })
+                    const updatedOrder = await dbContext.Order.findById(orderId)
+                    return updatedOrder
+                }
+            }
+        } catch (error) {
+            logger.error(error)
+            return error
+        }
+    }
 
 
 

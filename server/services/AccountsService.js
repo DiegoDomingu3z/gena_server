@@ -102,7 +102,11 @@ class AccountsService {
         }
     }
 
-
+    /**
+       * LOGOUT
+       * find users account and removes accessToken
+       @returns {StatusCode} 
+       */
 
     async logout(token) {
         try {
@@ -122,7 +126,11 @@ class AccountsService {
             return error
         }
     }
-
+    /**
+           * checks if account id admin
+           * finds user by ID then deletes the user
+           @returns {StatusCode || Object} accountData
+           */
 
     async removeUser(adminToken, userId) {
         try {
