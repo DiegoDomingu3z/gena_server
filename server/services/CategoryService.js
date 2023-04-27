@@ -70,7 +70,7 @@ class CategoryService {
                     const updatedDoc = await dbContext.Category.findByIdAndUpdate(id, { path: newPath, updatedOn: todayDate, name: data.name }, { returnOriginal: false })
                     // updated all labels with the new category name
                     const updatedLabels = await dbContext.Label.updateMany({ categoryId: id }, { $set: { categoryName: data.name } })
-                    const subCats = await dbContext.SubCategory.updateMany({ categoryId: id }, { path: newPath })
+                    const subCats = await dbContext.SubCategory.updateMany({ categoryId: id }, { path: newPath, bulkPath: bulkPath })
                     return updatedDoc
                 }
             }
