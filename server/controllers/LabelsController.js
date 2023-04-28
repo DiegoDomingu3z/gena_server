@@ -31,6 +31,9 @@ export class LabelsController extends BaseController {
             const creator = await labelsService.findUser(token)
             if (creator == null) {
                 res.status(404).send("USER IS NOT FOUND TO DO THIS ACTION")
+            } else if (creator.privileges != 'admin' && creator.privileges != 'printshop') {
+                logger.log("NO PERMISSION")
+                res.status(403).send("YOU DO NOT HAVE PERMISSION TO DO THIS")
             } else {
                 if (!catData || !subCatData) {
                     res.status(404).send("CATEGORY OR SUBCATEGORY DOES NOT EXISTS")
@@ -107,6 +110,9 @@ export class LabelsController extends BaseController {
             const user = await dbContext.Account.findOne({ accessToken: token })
             if (!user) {
                 res.status(404).send("USER IS NOT FOUND TO DO THIS ACTION")
+            }
+            else if (user.privileges != 'admin' || user.privileges != 'printshop') {
+                res.status(403).send("YOU DO NOT HAVE PERMISSION TO DO THIS")
             } else {
                 const labelId = req.param.id
                 const label = await dbContext.Label.findById(labelId)
@@ -174,6 +180,9 @@ export class LabelsController extends BaseController {
             const user = await dbContext.Account.findOne({ accessToken: token })
             if (!user) {
                 res.status(404).send("USER IS NOT FOUND TO DO THIS ACTION")
+            }
+            else if (user.privileges != 'admin' || user.privileges != 'printshop') {
+                res.status(403).send("YOU DO NOT HAVE PERMISSION TO DO THIS")
             } else {
                 const data = await labelsService.removeLabel(labelId)
                 if (data == 404) {

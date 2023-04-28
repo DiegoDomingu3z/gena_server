@@ -67,7 +67,7 @@ class CategoryService {
                     await rename(cat.path, newPath)
                     await rename(cat.bulkPath, bulkPath)
                     const todayDate = new Date()
-                    const updatedDoc = await dbContext.Category.findByIdAndUpdate(id, { path: newPath, updatedOn: todayDate, name: data.name }, { returnOriginal: false })
+                    const updatedDoc = await dbContext.Category.findByIdAndUpdate(id, { path: newPath, updatedOn: todayDate, name: data.name, bulkPath: bulkPath }, { returnOriginal: false })
                     // updated all labels with the new category name
                     const updatedLabels = await dbContext.Label.updateMany({ categoryId: id }, { $set: { categoryName: data.name } })
                     const subCats = await dbContext.SubCategory.updateMany({ categoryId: id }, { path: newPath, bulkPath: bulkPath })

@@ -4,6 +4,7 @@ import { CategorySchema } from '../models/Category'
 import { SubCategorySchema } from '../models/SubCategory'
 import { labelSchema } from '../models/label'
 import { OrderSchema } from '../models/Order'
+import { MaterialSchema } from '../models/Material'
 class DbContext {
 
     Account = mongoose.model('Account', AccountSchema)
@@ -15,6 +16,8 @@ class DbContext {
     Label = mongoose.model('Label', labelSchema)
 
     Order = mongoose.model('Order', OrderSchema)
+
+    Material = mongoose.model('Material', MaterialSchema)
 }
 
 

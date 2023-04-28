@@ -2,6 +2,8 @@ import { dbContext } from "../db/DbContext"
 import { logger } from "../utils/Logger"
 import { PDFDocument } from 'pdf-lib'
 const fs = require('fs');
+const util = require('util');
+const mkdir = util.promisify(fs.mkdir);
 const { readFile, writeFile } = require('fs/promises');
 
 class PrintShopService {
@@ -17,14 +19,19 @@ class PrintShopService {
             } else {
                 // find the order by the id sent in
                 const order = await dbContext.Order.findById(id)
+                if (!order) {
+                    return Promise.resolve(404)
+                }
                 // variables we will use later
                 let pdfDoc;
                 let path;
+                const mainFolderPath = await this.createMainFolder(user, order)
                 // loop through all the labels in the order sent
                 for (let i = 0; i < order.labels.length; i++) {
                     const label = order.labels[i];
                     // find the established label that the user ordered
                     const findOrder = await dbContext.Label.findById(label.labelId)
+                    const materialType = await this.createSubFolder(mainFolderPath, findOrder.materialTypeId)
                     // check to see if that label is used to print in bulk
                     if (findOrder.isBulkLabel == true) {
                         if (!findOrder.pdfBulkPath) {
@@ -64,12 +71,13 @@ class PrintShopService {
                         const pdfBytes = await pdfDoc.save()
                         // NOW CREATE FILE PATH TO WHERE TO SAVE THE PDF DOC
                         if (i == 0) {
-                            path = `../../../repos/inventive/gena_2/src/prints/${findOrder.fileName}`
+                            path = `../../../repos/inventive/gena_2/src/prints/${mainFolderPath}/${materialType}/${findOrder.fileName}`
                         } else {
                             let newName = findOrder.fileName.slice(0, -4);
-                            path = `../../../repos/inventive/gena_2/src/prints/${newName}(${i}).pdf`
+                            path = `../../../repos/inventive/gena_2/src/prints/${mainFolderPath}/${materialType}/${newName}(${i}).pdf`
                         }
                         await fs.promises.writeFile(path, pdfBytes)
+                        this.updateOrder(id)
                     }
                 }
             }
@@ -77,6 +85,28 @@ class PrintShopService {
             logger.error(error)
             return error
         }
+    }
+
+
+    async updateOrder(id) {
+        await dbContext.Order.findOneAndUpdate(id, { status: 'processing', updatedOn: Date.now() })
+        return
+    }
+
+
+    async createMainFolder(user, order) {
+        const mainFolderPath = `../../../repos/inventive/gena_2/src/prints/${user.department}-${user.firstName}-${user.lastName}-${order._id}`
+        await mkdir(mainFolderPath, { recursive: true });
+        return Promise.resolve(mainFolderPath)
+    }
+
+
+    async createSubFolder(mainFolderPath, materialId) {
+        const material = await dbContext.Material.findById(materialId)
+        const subFolderPath = material.name
+        const newPath = `${mainFolderPath}/${subFolderPath}`
+        mkdir(newPath, { recursive: true });
+        return newPath
     }
 
 
