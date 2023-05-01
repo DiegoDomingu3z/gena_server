@@ -6,7 +6,7 @@ const ObjectId = Schema.Types.ObjectId
 
 export const labelSchema = new Schema({
     pdfPath: { type: String, required: true },
-    pdfBulkPath: { type: String, },
+    pdfBulkPath: { type: String },
     fields: [{
         name: { type: String, required: true },
         type: { type: String, required: true, enum: ["text", "number", "checkbox"] }
@@ -23,6 +23,7 @@ export const labelSchema = new Schema({
     subCategoryId: { type: ObjectId, ref: 'SubCategory', required: true },
     subCategoryName: { type: String, required: true },
     fileName: { type: String, required: true },
-    isKanban: { type: Boolean, required: true }
+    isKanban: { type: Boolean, required: true },
+    materialTypeId: { type: String, required: true }
 })
 

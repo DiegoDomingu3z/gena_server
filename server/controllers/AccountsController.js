@@ -10,6 +10,7 @@ export class AccountsController extends BaseController {
             .post('/login', this.login)
             .put('/logout', this.logout)
             .delete('/delete-user/:id', this.deleteUser)
+            .get('', this.getMyAccount)
 
 
     }
@@ -111,6 +112,21 @@ export class AccountsController extends BaseController {
                 res.status(404).send("USER TO DELETE NOT FOUND")
             } else {
                 res.status(200).send(data)
+            }
+        } catch (error) {
+            logger.error(error)
+            next(error)
+        }
+    }
+
+    async getMyAccount(req, res, next) {
+        try {
+            const token = req.header('Authorization')
+            const user = await accountsService.getMyAccount(token)
+            if (user == 400) {
+                res.status(400).send("NO ACCOUNT FOUND")
+            } else {
+                res.status(200).send(user)
             }
         } catch (error) {
             logger.error(error)

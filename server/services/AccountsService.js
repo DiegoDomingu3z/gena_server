@@ -152,6 +152,19 @@ class AccountsService {
 
 
 
+    async getMyAccount(token) {
+        try {
+            const account = await dbContext.Account.findOne({ accessToken: token })
+            if (!account) {
+                return Promise.resolve(400)
+            } else { return Promise.resolve(account) }
+        } catch (error) {
+            logger.error(error)
+            return error
+        }
+    }
+
+
 
 
 

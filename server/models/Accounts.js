@@ -10,7 +10,7 @@ export const AccountSchema = new Schema({
     lastName: { type: String, required: true, },
     userName: { type: String, required: true, unique: true },
     password: { type: String, required: true, unique: true },
-    // department: { type: String, required: true },
+    department: { type: String, required: true },
     // departmentId: { type: ObjectId, ref: 'Department', required: true },
     teamLead: { type: String, required: true },
     groupLead: { type: String, required: true },

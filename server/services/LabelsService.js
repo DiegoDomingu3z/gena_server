@@ -13,7 +13,7 @@ class LabelsService {
         if (!data) {
             return null
         } else {
-            return data._id
+            return data
         }
     }
 
@@ -36,7 +36,8 @@ class LabelsService {
                     subCategoryName: subCatData.name,
                     subCategoryId: subCatData._id,
                     fileName: data.fileName,
-                    isKanban: data.isKanban
+                    isKanban: data.isKanban,
+                    materialTypeId: data.materialTypeId
                 }
             } else if (data.isBulkLabel == false) {
                 labelData = {
@@ -52,7 +53,8 @@ class LabelsService {
                     subCategoryName: subCatData.name,
                     subCategoryId: subCatData._id,
                     fileName: data.fileName,
-                    isKanban: data.isKanban
+                    isKanban: data.isKanban,
+                    materialTypeId: data.materialTypeId
 
                 }
             }
@@ -100,14 +102,26 @@ class LabelsService {
         if (!label) {
             return Promise.resolve(404)
         } else {
-            const path = `${label.pdfPath}/${label.categoryName}/${label.subCategoryName}/${label.fileName}`
-            await fs.unlink(path, (err) => {
+            let path = `${label.pdfPath}/${label.categoryName}/${label.subCategoryName}/${label.fileName}`
+            let bulkPath;
+            if (label.isBulkLabel == true) {
+                bulkPath = `${label.pdfBulkPath}/${label.categoryName}/${label.subCategoryName}/${label.fileName}`
+                await fs.unlink(bulkPath, (err) => {
+                    if (err) {
+                        console.error(err);
+                        return Promise.resolve(401);
+                    }
+                    return Promise.resolve(200)
+                })
+            }
+            await fs.unlink(bulkPath, (err) => {
                 if (err) {
                     console.error(err);
                     return Promise.resolve(401);
                 }
                 return Promise.resolve(200)
             })
+
             await dbContext.Label.findByIdAndDelete(id)
             return Promise.resolve(200)
         }

@@ -20,10 +20,12 @@ class SubCategoryService {
                     return 401
                 } else {
                     const path = await mkdir(`${category.path}/${data.name}`, { recursive: true })
+                    const bulkPath = await mkdir(`${category.bulkPath}/${data.name}`, { recursive: true })
                     const cat = await dbContext.SubCategory.create({
                         name: data.name,
                         creatorId: user._id,
                         path: `${category.path}`,
+                        bulkPath: bulkPath,
                         categoryId: catId
                     })
                     return cat
@@ -101,8 +103,11 @@ class SubCategoryService {
                     const updatedLabel = await dbContext.Label.updateMany({ subCategoryId: id }, { $set: { subCategoryName: doc.name } })
                     const category = await dbContext.Category.findById(doc.categoryId)
                     const pathToUpdated = `${doc.path}/${subCat.name}`
+                    const pathToUpdatedBulk = `${doc.bulkPath}/${subCat.name}`
                     const newPath = `../../../repos/inventive/gena_2/src/pdflabels/${category.name}/${doc.name}`
+                    const newBulkPath = `../../../repos/inventive/gena_2/src/bulk/${category.name}/${doc.name}`
                     await rename(pathToUpdated, newPath)
+                    await rename(pathToUpdatedBulk, newBulkPath)
                     return doc
                 }
             }

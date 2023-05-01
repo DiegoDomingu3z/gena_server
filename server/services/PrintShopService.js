@@ -2,6 +2,8 @@ import { dbContext } from "../db/DbContext"
 import { logger } from "../utils/Logger"
 import { PDFDocument } from 'pdf-lib'
 const fs = require('fs');
+const util = require('util');
+const mkdir = util.promisify(fs.mkdir);
 const { readFile, writeFile } = require('fs/promises');
 
 class PrintShopService {
@@ -17,14 +19,19 @@ class PrintShopService {
             } else {
                 // find the order by the id sent in
                 const order = await dbContext.Order.findById(id)
+                if (!order) {
+                    return Promise.resolve(404)
+                }
                 // variables we will use later
                 let pdfDoc;
                 let path;
+                const mainFolderPath = await this.createMainFolder(user, order)
                 // loop through all the labels in the order sent
                 for (let i = 0; i < order.labels.length; i++) {
                     const label = order.labels[i];
                     // find the established label that the user ordered
                     const findOrder = await dbContext.Label.findById(label.labelId)
+                    const materialType = await this.createSubFolder(mainFolderPath, findOrder.materialTypeId)
                     // check to see if that label is used to print in bulk
                     if (findOrder.isBulkLabel == true) {
                         if (!findOrder.pdfBulkPath) {
@@ -33,7 +40,8 @@ class PrintShopService {
                             logger.log("NO BULK PDF PATH FOUND")
                             // find the path of the bulk path to print
                             // load the file
-                            pdfDoc = await PDFDocument.load(`${findOrder.pdfBulkPath}/${findOrder.categoryName}/${findOrder.subCategoryName}/${findOrder.fileName}`)
+                            let pdfBulkPath = `${findOrder.pdfBulkPath}/${findOrder.categoryName}/${findOrder.subCategoryName}/${findOrder.fileName}`
+                            pdfDoc = await PDFDocument.load(await readFile(pdfBulkPath))
                         }
                     } else {
                         // return error if no path was found to that file
@@ -64,13 +72,61 @@ class PrintShopService {
                         const pdfBytes = await pdfDoc.save()
                         // NOW CREATE FILE PATH TO WHERE TO SAVE THE PDF DOC
                         if (i == 0) {
-                            path = `../../../repos/inventive/gena_2/src/prints/${findOrder.fileName}`
+                            path = `${mainFolderPath}/${materialType}/${findOrder.fileName}`
                         } else {
                             let newName = findOrder.fileName.slice(0, -4);
-                            path = `../../../repos/inventive/gena_2/src/prints/${newName}(${i}).pdf`
+                            path = `${mainFolderPath}/${materialType}/${newName}(${i}).pdf`
                         }
                         await fs.promises.writeFile(path, pdfBytes)
+
                     }
+                }
+            }
+            this.updateOrder(id)
+            return Promise.resolve(200)
+        } catch (error) {
+            logger.error(error)
+            return error
+        }
+    }
+
+
+    async updateOrder(id) {
+        await dbContext.Order.findOneAndUpdate(id, { status: 'processing', updatedOn: Date.now() })
+        return
+    }
+
+
+    async createMainFolder(user, order) {
+        const mainFolderPath = `../../../repos/inventive/gena_2/src/prints/${user.department}-${user.firstName}-${user.lastName}-${order._id}`
+        await mkdir(mainFolderPath, { recursive: true });
+        return Promise.resolve(mainFolderPath)
+    }
+
+
+    async createSubFolder(mainFolderPath, materialId) {
+        const material = await dbContext.Material.findById(materialId)
+        const subFolderPath = material.name
+        const newPath = `${mainFolderPath}/${subFolderPath}`
+        mkdir(newPath, { recursive: true });
+        return subFolderPath
+    }
+
+
+    async deliverOrder(id, token) {
+        try {
+            const user = await dbContext.Account.findOne({ accessToken: token })
+            if (!user) {
+                return Promise.resolve(400)
+            } else if (user.privileges != 'printshop') {
+                return Promise.resolve(403)
+            } else {
+                const order = await dbContext.Order.findById(id)
+                if (!order) {
+                    return Promise.resolve(400)
+                } else {
+                    const updatedOrder = await dbContext.Order.findOneAndUpdate(id, { status: 'delivered', updatedOn: Date.now() })
+                    return Promise.resolve(200)
                 }
             }
         } catch (error) {
@@ -78,7 +134,6 @@ class PrintShopService {
             return error
         }
     }
-
 
 
 
