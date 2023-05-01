@@ -18,6 +18,7 @@ export class LabelsController extends BaseController {
             .put('/update-label-file/:id', this.updateFile)
             .put('/update-label-db/:id', this.updateFileData)
             .delete('/label/delete/:id', this.removeLabel)
+            .get('/get/category/:categoryId/subCategory/:subCatId', this.getLabelsInCats)
     }
 
 
@@ -193,6 +194,18 @@ export class LabelsController extends BaseController {
                     res.status(200).send("DELETE LABEL")
                 }
             }
+        } catch (error) {
+            logger.error(error);
+            next();
+        }
+    }
+
+    async getLabelsInCats(req, res, next) {
+        try {
+            const catId = req.params.categoryId
+            const subCatId = req.params.subCatId
+            const data = await labelsService.getLabelsInCats(catId, subCatId)
+            res.status(200).send(data)
         } catch (error) {
             logger.error(error);
             next();

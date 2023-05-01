@@ -114,7 +114,7 @@ class LabelsService {
                     return Promise.resolve(200)
                 })
             }
-            await fs.unlink(bulkPath, (err) => {
+            await fs.unlink(path, (err) => {
                 if (err) {
                     console.error(err);
                     return Promise.resolve(401);
@@ -124,6 +124,16 @@ class LabelsService {
 
             await dbContext.Label.findByIdAndDelete(id)
             return Promise.resolve(200)
+        }
+    }
+
+    async getLabelsInCats(catId, subCatId) {
+        try {
+            const data = await dbContext.Label.find({ categoryId: catId, subCategoryId: subCatId })
+            return Promise.resolve(data)
+        } catch (error) {
+            logger.log(error)
+            return error
         }
     }
 
