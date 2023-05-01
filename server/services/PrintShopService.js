@@ -40,7 +40,8 @@ class PrintShopService {
                             logger.log("NO BULK PDF PATH FOUND")
                             // find the path of the bulk path to print
                             // load the file
-                            pdfDoc = await PDFDocument.load(`${findOrder.pdfBulkPath}/${findOrder.categoryName}/${findOrder.subCategoryName}/${findOrder.fileName}`)
+                            let pdfBulkPath = `${findOrder.pdfBulkPath}/${findOrder.categoryName}/${findOrder.subCategoryName}/${findOrder.fileName}`
+                            pdfDoc = await PDFDocument.load(await readFile(pdfBulkPath))
                         }
                     } else {
                         // return error if no path was found to that file
@@ -71,16 +72,18 @@ class PrintShopService {
                         const pdfBytes = await pdfDoc.save()
                         // NOW CREATE FILE PATH TO WHERE TO SAVE THE PDF DOC
                         if (i == 0) {
-                            path = `../../../repos/inventive/gena_2/src/prints/${mainFolderPath}/${materialType}/${findOrder.fileName}`
+                            path = `${mainFolderPath}/${materialType}/${findOrder.fileName}`
                         } else {
                             let newName = findOrder.fileName.slice(0, -4);
-                            path = `../../../repos/inventive/gena_2/src/prints/${mainFolderPath}/${materialType}/${newName}(${i}).pdf`
+                            path = `${mainFolderPath}/${materialType}/${newName}(${i}).pdf`
                         }
                         await fs.promises.writeFile(path, pdfBytes)
-                        this.updateOrder(id)
+
                     }
                 }
             }
+            this.updateOrder(id)
+            return Promise.resolve(200)
         } catch (error) {
             logger.error(error)
             return error
@@ -106,9 +109,31 @@ class PrintShopService {
         const subFolderPath = material.name
         const newPath = `${mainFolderPath}/${subFolderPath}`
         mkdir(newPath, { recursive: true });
-        return newPath
+        return subFolderPath
     }
 
+
+    async deliverOrder(id, token) {
+        try {
+            const user = await dbContext.Account.findOne({ accessToken: token })
+            if (!user) {
+                return Promise.resolve(400)
+            } else if (user.privileges != 'printshop') {
+                return Promise.resolve(403)
+            } else {
+                const order = await dbContext.Order.findById(id)
+                if (!order) {
+                    return Promise.resolve(400)
+                } else {
+                    const updatedOrder = await dbContext.Order.findOneAndUpdate(id, { status: 'delivered', updatedOn: Date.now() })
+                    return Promise.resolve(200)
+                }
+            }
+        } catch (error) {
+            logger.error(error)
+            return error
+        }
+    }
 
 
 
