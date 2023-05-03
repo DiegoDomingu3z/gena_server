@@ -80,7 +80,7 @@ export class LabelsController extends BaseController {
             const data = req.body
             const creator = await labelsService.findUser(token)
             if (creator == null) {
-                res.status(404).send("USER IS NOT FOUND TO DO THIS ACTION")
+                res.status(403).send("USER IS NOT FOUND TO DO THIS ACTION")
             } else {
                 const catId = req.params.catId
                 const subCatId = req.params.subCatId
