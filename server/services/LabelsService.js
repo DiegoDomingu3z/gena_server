@@ -21,42 +21,33 @@ class LabelsService {
     async createLabel(data, catData, subCatData, creator) {
         try {
             let labelData;
+            let fields = [];
+            let bulkPath
             if (data.isBulkLabel == true) {
-                labelData = {
-                    pdfPath: `../../../repos/inventive/gena_2/src/pdflabels/`,
-                    pdfBulkPath: `../../../repos/inventive/gena_2/src/bulk/`,
-                    fields: data.fields,
-                    maxOrderQty: data.maxOrderQty,
-                    isBulkLabel: data.isBulkLabel,
-                    unitPack: data.unitPack,
-                    docNum: data.docNum,
-                    creatorId: creator,
-                    categoryName: catData.name,
-                    categoryId: catData._id,
-                    subCategoryName: subCatData.name,
-                    subCategoryId: subCatData._id,
-                    fileName: data.fileName,
-                    isKanban: data.isKanban,
-                    materialTypeId: data.materialTypeId
-                }
-            } else if (data.isBulkLabel == false) {
-                labelData = {
-                    pdfPath: `../../../repos/inventive/gena_2/src/pdflabels/`,
-                    fields: data.fields,
-                    maxOrderQty: data.maxOrderQty,
-                    isBulkLabel: data.isBulkLabel,
-                    unitPack: data.unitPack,
-                    docNum: data.docNum,
-                    creatorId: creator,
-                    categoryName: catData.name,
-                    categoryId: catData._id,
-                    subCategoryName: subCatData.name,
-                    subCategoryId: subCatData._id,
-                    fileName: data.fileName,
-                    isKanban: data.isKanban,
-                    materialTypeId: data.materialTypeId
+                bulkPath = `../../../repos/inventive/gena_2/src/bulk/`
+            }
+            if (data.isKanban == true) {
+                fields = data.fields
+            }
 
-                }
+            labelData = {
+                pdfPath: `../../../repos/inventive/gena_2/src/pdflabels/`,
+                pdfBulkPath: bulkPath,
+                fields: fields,
+                maxOrderQty: data.maxOrderQty,
+                isBulkLabel: data.isBulkLabel,
+                unitPack: data.unitPack,
+                docNum: data.docNum,
+                creatorId: creator,
+                categoryName: catData.name,
+                categoryId: catData._id,
+                subCategoryName: subCatData.name,
+                subCategoryId: subCatData._id,
+                fileName: data.fileName,
+                isKanban: data.isKanban,
+                materialTypeId: data.materialTypeId
+
+
             }
             const newDoc = await dbContext.Label.create(labelData)
             logger.log(newDoc)
@@ -114,7 +105,7 @@ class LabelsService {
                     return Promise.resolve(200)
                 })
             }
-            await fs.unlink(bulkPath, (err) => {
+            await fs.unlink(path, (err) => {
                 if (err) {
                     console.error(err);
                     return Promise.resolve(401);
@@ -124,6 +115,16 @@ class LabelsService {
 
             await dbContext.Label.findByIdAndDelete(id)
             return Promise.resolve(200)
+        }
+    }
+
+    async getLabelsInCats(catId, subCatId) {
+        try {
+            const data = await dbContext.Label.find({ categoryId: catId, subCategoryId: subCatId })
+            return Promise.resolve(data)
+        } catch (error) {
+            logger.log(error)
+            return error
         }
     }
 

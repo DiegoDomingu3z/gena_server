@@ -8,6 +8,7 @@ export class MaterialController extends BaseController {
         super('api/materials')
         this.router
             .post('/create', this.createMaterial)
+            .get('/getAll', this.getAllMaterials)
     }
 
 
@@ -21,6 +22,21 @@ export class MaterialController extends BaseController {
                 const data = req.body
                 const newMaterial = await materialService.createMaterial(data, user._id)
                 res.status(200).send(newMaterial)
+            }
+        } catch (error) {
+            logger.log(error)
+            next(error)
+        }
+    }
+
+    async getAllMaterials(req, res, next) {
+        try {
+            const token = req.header("Authorization")
+            const data = await materialService.getAllMaterials(token)
+            if (data == 400) {
+                res.status(400).send("NO USER FOUND")
+            } else {
+                res.status(200).send(data)
             }
         } catch (error) {
             logger.log(error)

@@ -18,6 +18,7 @@ export class LabelsController extends BaseController {
             .put('/update-label-file/:id', this.updateFile)
             .put('/update-label-db/:id', this.updateFileData)
             .delete('/label/delete/:id', this.removeLabel)
+            .get('/get/category/:categoryId/subCategory/:subCatId', this.getLabelsInCats)
     }
 
 
@@ -79,7 +80,7 @@ export class LabelsController extends BaseController {
             const data = req.body
             const creator = await labelsService.findUser(token)
             if (creator == null) {
-                res.status(404).send("USER IS NOT FOUND TO DO THIS ACTION")
+                res.status(403).send("USER IS NOT FOUND TO DO THIS ACTION")
             } else {
                 const catId = req.params.catId
                 const subCatId = req.params.subCatId
@@ -193,6 +194,18 @@ export class LabelsController extends BaseController {
                     res.status(200).send("DELETE LABEL")
                 }
             }
+        } catch (error) {
+            logger.error(error);
+            next();
+        }
+    }
+
+    async getLabelsInCats(req, res, next) {
+        try {
+            const catId = req.params.categoryId
+            const subCatId = req.params.subCatId
+            const data = await labelsService.getLabelsInCats(catId, subCatId)
+            res.status(200).send(data)
         } catch (error) {
             logger.error(error);
             next();
