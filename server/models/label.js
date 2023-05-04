@@ -24,6 +24,7 @@ export const labelSchema = new Schema({
     subCategoryName: { type: String, required: true },
     fileName: { type: String, required: true },
     isKanban: { type: Boolean, required: true },
-    materialTypeId: { type: String, required: true }
+    materialTypeId: { type: String, required: true },
+    name: { type: String, required: true }
 })
 
