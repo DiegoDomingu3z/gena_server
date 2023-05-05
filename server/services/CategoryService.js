@@ -1,8 +1,10 @@
+import { TRUE } from "sass";
 import { dbContext } from "../db/DbContext"
 import { logger } from "../utils/Logger";
 const fs = require('fs');
 const util = require('util');
 const mkdir = util.promisify(fs.mkdir);
+const rmdir = util.promisify(fs.rm)
 const rename = util.promisify(fs.rename);
 class CategoryService {
 
@@ -13,6 +15,20 @@ class CategoryService {
         try {
             const cats = await dbContext.Category.find()
             return cats
+        } catch (error) {
+            logger.log(error)
+            return error
+        }
+    }
+
+    async getById(id) {
+        try {
+            const cat = await dbContext.Category.findById(id)
+            if (!cat) {
+                return Promise.resolve(400)
+            } else {
+                return Promise.resolve(cat)
+            }
         } catch (error) {
             logger.log(error)
             return error
@@ -73,6 +89,27 @@ class CategoryService {
                     const subCats = await dbContext.SubCategory.updateMany({ categoryId: id }, { path: newPath, bulkPath: bulkPath })
                     return updatedDoc
                 }
+            }
+        } catch (error) {
+            logger.log(error)
+            return error
+        }
+    }
+
+
+    async removeCategory(token, id) {
+        try {
+            const user = await dbContext.Account.findOne({ accessToken: token })
+            if (!user) {
+                return 404
+            } else if (user.privileges != 'admin' && user.privileges != 'printshop') {
+                return 403
+            } else {
+                const findCat = await dbContext.Category.findById(id)
+                await rmdir(findCat.path, { recursive: true })
+                await rmdir(findCat.bulkPath, { recursive: true })
+                const cat = await dbContext.Category.findByIdAndDelete(id)
+                return Promise.resolve(cat)
             }
         } catch (error) {
             logger.log(error)

@@ -45,7 +45,8 @@ class LabelsService {
                 subCategoryId: subCatData._id,
                 fileName: data.fileName,
                 isKanban: data.isKanban,
-                materialTypeId: data.materialTypeId
+                materialTypeId: data.materialTypeId,
+                name: data.name
 
 
             }
