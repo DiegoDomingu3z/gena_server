@@ -11,6 +11,7 @@ export class SubCategoryController extends BaseController {
             .get('/incat/:id', this.getAllInCategory)
             .get('/:id', this.getById)
             .put('/update/:id', this.updateSubCat)
+            .delete('/remove/:id', this.removeSubCategory)
     }
 
 
@@ -91,6 +92,22 @@ export class SubCategoryController extends BaseController {
                 res.status(404).send("SUBCATEGORY NOT FOUND")
             } else if (data == 403) {
                 res.status(403).send("YOU DON'T HAVE PERMISSION TO DO THIS ACTION")
+            } else {
+                res.status(200).send(data)
+            }
+        } catch (error) {
+            logger.error(error)
+            next()
+        }
+    }
+
+    async removeSubCategory(req, res, next) {
+        try {
+            const token = req.header('Authorization')
+            const id = req.params.id
+            const data = await subCategoryService.removeSubCategory(id, token)
+            if (data == 403) {
+                res.status(403).send("NO USER FOUND OR YOU DON'T HAVE ACCESS TO DO THIS")
             } else {
                 res.status(200).send(data)
             }

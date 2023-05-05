@@ -109,6 +109,8 @@ class CategoryService {
                 await rmdir(findCat.path, { recursive: true })
                 await rmdir(findCat.bulkPath, { recursive: true })
                 const cat = await dbContext.Category.findByIdAndDelete(id)
+                await dbContext.SubCategory.deleteMany({ categoryId: id })
+                await dbContext.Label.deleteMany({ categoryId: id })
                 return Promise.resolve(cat)
             }
         } catch (error) {
