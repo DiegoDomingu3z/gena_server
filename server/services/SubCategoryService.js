@@ -4,6 +4,7 @@ const fs = require('fs');
 const util = require('util');
 const mkdir = util.promisify(fs.mkdir);
 const rename = util.promisify(fs.rename);
+const rmdir = util.promisify(fs.rm)
 class SubCategoryService {
 
     async createSubCat(token, catId, data) {
@@ -111,6 +112,29 @@ class SubCategoryService {
                     return doc
                 }
             }
+        } catch (error) {
+            logger.error(error)
+            return error
+        }
+    }
+
+    async removeSubCategory(id, token) {
+        try {
+            const user = await dbContext.Account.findOne({ accessToken: token })
+            if (!user) {
+                return Promise.resolve(403)
+            } else if (user.privileges != 'admin' && user.privileges != 'printshop') {
+                return Promise.resolve(403)
+            } else {
+                const subCategory = await dbContext.SubCategory.findById(id)
+                const path = `${subCategory.path}/${subCategory.name}`
+                await rmdir(path, { recursive: true })
+                await rmdir(subCategory.bulkPath, { recursive: true })
+                const removeSubCategory = await dbContext.SubCategory.findByIdAndDelete(id)
+                const removedLabels = await dbContext.Label.deleteMany({ subCategoryId: id })
+                return removeSubCategory
+            }
+
         } catch (error) {
             logger.error(error)
             return error
