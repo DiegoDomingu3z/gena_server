@@ -105,8 +105,8 @@ class SubCategoryService {
                     const category = await dbContext.Category.findById(doc.categoryId)
                     const pathToUpdated = `${doc.path}/${subCat.name}`
                     const pathToUpdatedBulk = `${doc.bulkPath}/${subCat.name}`
-                    const newPath = `../../../repos/inventive/gena_2/src/pdflabels/${category.name}/${doc.name}`
-                    const newBulkPath = `../../../repos/inventive/gena_2/src/bulk/${category.name}/${doc.name}`
+                    const newPath = `../../../repos/inventive/gena_2/public/images/pdflabels/${category.name}/${doc.name}`
+                    const newBulkPath = `../../../repos/inventive/gena_2/public/images/bulk/${category.name}/${doc.name}`
                     await rename(pathToUpdated, newPath)
                     await rename(pathToUpdatedBulk, newBulkPath)
                     return doc

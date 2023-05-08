@@ -48,13 +48,13 @@ class CategoryService {
                 if (exists) {
                     return 403
                 } else {
-                    const path = await mkdir(`../../../repos/inventive/gena_2/src/pdflabels/${data.name}`, { recursive: true })
-                    const bulkPath = await mkdir(`../../../repos/inventive/gena_2/src/bulk/${data.name}`, { recursive: true })
+                    const path = await mkdir(`../../../repos/inventive/gena_2/public/images/pdflabels/${data.name}`, { recursive: true })
+                    const bulkPath = await mkdir(`../../../repos/inventive/gena_2/public/images/bulk/${data.name}`, { recursive: true })
                     const cat = await dbContext.Category.create({
                         name: data.name,
                         creatorId: user._id,
-                        path: `../../../repos/inventive/gena_2/src/pdflabels/${data.name}`,
-                        bulkPath: `../../../repos/inventive/gena_2/src/bulk/${data.name}`
+                        path: `../../../repos/inventive/gena_2/public/images/pdflabels/${data.name}`,
+                        bulkPath: `../../../repos/inventive/gena_2/public/images/bulk/${data.name}`
                     })
                     return cat
                 }
@@ -78,8 +78,8 @@ class CategoryService {
                 if (!cat) {
                     return 401
                 } else {
-                    const newPath = `../../../repos/inventive/gena_2/src/pdflabels/${data.name}`
-                    const bulkPath = `../../../repos/inventive/gena_2/src/bulk/${data.name}`
+                    const newPath = `../../../repos/inventive/gena_2/public/images/pdflabels/${data.name}`
+                    const bulkPath = `../../../repos/inventive/gena_2/public/images/bulk/${data.name}`
                     await rename(cat.path, newPath)
                     await rename(cat.bulkPath, bulkPath)
                     const todayDate = new Date()

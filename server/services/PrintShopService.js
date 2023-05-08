@@ -57,11 +57,13 @@ class PrintShopService {
                     }
                     // read the pdf
                     const form = pdfDoc.getForm()
+                    const fieldNames = form.getFields().map(field => field.getName());
+                    logger.log(fieldNames);
                     // if kanban (files you put text on do the loop)
                     if (findOrder.isKanban == true) {
                         for (let i = 0; i < findOrder.fields.length; i++) {
                             const field = findOrder.fields[i];
-                            const inputName = field.name.toUpperCase()
+                            const inputName = field.name
                             const fieldToFill = form.getTextField(inputName)
                             logger.log(label.textToPut[i].text)
                             fieldToFill.setText(label.textToPut[i].text)
@@ -98,7 +100,7 @@ class PrintShopService {
 
 
     async createMainFolder(user, order) {
-        const mainFolderPath = `../../../repos/inventive/gena_2/src/prints/${user.department}-${user.firstName}-${user.lastName}-${order._id}`
+        const mainFolderPath = `../../../repos/inventive/gena_2/public/images/prints/${user.department}-${user.firstName}-${user.lastName}-${order._id}`
         await mkdir(mainFolderPath, { recursive: true });
         return Promise.resolve(mainFolderPath)
     }

@@ -24,14 +24,14 @@ class LabelsService {
             let fields = [];
             let bulkPath
             if (data.isBulkLabel == true) {
-                bulkPath = `../../../repos/inventive/gena_2/src/bulk/`
+                bulkPath = `../../../repos/inventive/gena_2/public/images/bulk/`
             }
             if (data.isKanban == true) {
                 fields = data.fields
             }
 
             labelData = {
-                pdfPath: `../../../repos/inventive/gena_2/src/pdflabels/`,
+                pdfPath: `../../../repos/inventive/gena_2/public/images/pdflabels/`,
                 pdfBulkPath: bulkPath,
                 fields: fields,
                 maxOrderQty: data.maxOrderQty,

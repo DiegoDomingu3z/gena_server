@@ -52,9 +52,9 @@ export class LabelsController extends BaseController {
                                 const fileToPrint = files[i];
                                 const fileName = await fileToPrint.originalname;
                                 if (i == 0) {
-                                    path = `../../../repos/inventive/gena_2/src/pdflabels/${catName}/${subCatName}/${fileName}`
+                                    path = `../../../repos/inventive/gena_2/public/images/pdflabels/${catName}/${subCatName}/${fileName}`
                                 } else {
-                                    path = `../../../repos/inventive/gena_2/src/bulk/${catName}/${subCatName}/${fileName}`
+                                    path = `../../../repos/inventive/gena_2/public/images/bulk/${catName}/${subCatName}/${fileName}`
                                 }
                                 const pdfBuffer = Buffer.from(fileToPrint.buffer);
                                 await fs.promises.writeFile(path, pdfBuffer)
@@ -135,7 +135,7 @@ export class LabelsController extends BaseController {
                             const fileName = await req.file.originalname;
                             logger.log(fileName)
                             const pdfBuffer = Buffer.from(req.file.buffer);;
-                            const path = `../../../repos/inventive/gena_2/src/pdflabels/${catName}/${subCatName}/${fileName}`
+                            const path = `../../../repos/inventive/gena_2/public/images/pdflabels/${catName}/${subCatName}/${fileName}`
                             await fs.promises.writeFile(path, pdfBuffer)
                             logger.log("FILE MADE")
                             const newLabel = await labelsService.updateFileName(labelId, fileName)
