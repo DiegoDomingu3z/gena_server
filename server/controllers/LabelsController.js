@@ -19,6 +19,7 @@ export class LabelsController extends BaseController {
             .put('/update-label-db/:id', this.updateFileData)
             .delete('/label/delete/:id', this.removeLabel)
             .get('/get/category/:categoryId/subCategory/:subCatId', this.getLabelsInCats)
+            .get('/search', this.searchLabel)
     }
 
 
@@ -206,6 +207,17 @@ export class LabelsController extends BaseController {
             const subCatId = req.params.subCatId
             const data = await labelsService.getLabelsInCats(catId, subCatId)
             res.status(200).send(data)
+        } catch (error) {
+            logger.error(error);
+            next();
+        }
+    }
+
+    async searchLabel(req, res, next) {
+        try {
+            const { q } = req.query;
+            const foundData = await labelsService.searchLabel(q)
+            res.status(200).send(foundData)
         } catch (error) {
             logger.error(error);
             next();

@@ -284,6 +284,11 @@ class OrderService {
         }
     }
 
+    async getAllInCart(data) {
+        const cart = await dbContext.Label.find({ _id: { $in: data.id } })
+        return cart
+    }
+
 }
 
 

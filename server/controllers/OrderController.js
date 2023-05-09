@@ -16,6 +16,7 @@ export class OrderController extends BaseController {
             .get('/print-shop/approved-by-lead', this.getApprovedOrders) //done
             .get('/print-shop/processing-orders', this.getProcessingOrders) // done
             .get('/delivered-orders', this.getDeliveredOrders) // done
+            .get('/cart', this.getCart)
     }
 
 
@@ -185,6 +186,18 @@ export class OrderController extends BaseController {
             } else {
                 res.status(200).send(orders)
             }
+        } catch (error) {
+            logger.error(error)
+            next()
+        }
+    }
+
+
+    async getCart(req, res, next) {
+        try {
+            const data = req.body
+            const cartOrders = await orderService.getAllInCart(data)
+            res.status(200).send(cartOrders)
         } catch (error) {
             logger.error(error)
             next()

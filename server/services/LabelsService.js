@@ -129,6 +129,25 @@ class LabelsService {
         }
     }
 
+    async searchLabel(data) {
+        try {
+            const foundData = await dbContext.Label.find({
+                $or: [
+                    { fileName: { $regex: new RegExp(data, 'i') } },
+                    { docNum: { $regex: new RegExp(data, 'i') } },
+                    { categoryName: { $regex: new RegExp(data, 'i') } },
+                    { subCategoryName: { $regex: new RegExp(data, 'i') } },
+                    { name: { $regex: new RegExp(data, 'i') } }
+                ]
+            });
+            return foundData;
+
+        } catch (error) {
+            logger.log(error)
+            return error
+        }
+    }
+
 
 
 }
