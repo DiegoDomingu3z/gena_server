@@ -33,6 +33,26 @@ class DepartmentService {
         }
     }
 
+    async getUsersInDepartment(id) {
+        try {
+            const users = await dbContext.Account.find({ departmentId: id })
+            return Promise.resolve(users)
+        } catch (error) {
+            logger.log(error)
+            return error
+        }
+    }
+
+    async getLeads() {
+        try {
+            const leads = await dbContext.Account.find({ privileges: 'team-lead' })
+            return Promise.resolve(leads)
+        } catch (error) {
+            logger.log(error)
+            return error
+        }
+    }
+
 
 }
 

@@ -17,6 +17,7 @@ export class OrderController extends BaseController {
             .get('/print-shop/processing-orders', this.getProcessingOrders) // done
             .get('/delivered-orders', this.getDeliveredOrders) // done
             .get('/cart', this.getCart)
+            .get('/need-to-approve', this.getApprovalOrder)
     }
 
 
@@ -80,7 +81,7 @@ export class OrderController extends BaseController {
             } else if (deletedOrder == 403) {
                 res.status(403).send("FORBIDDEN")
             } else {
-                res.status(200).send("DELETED")
+                res.status(200).send(deletedOrder)
             }
         } catch (error) {
             logger.error(error)
@@ -203,5 +204,15 @@ export class OrderController extends BaseController {
             next()
         }
     }
+    async getApprovalOrder(req, res, next) {
+        try {
+            const token = req.header("Authorization")
+            const orders = await orderService.getApprovalOrder(token)
+        } catch (error) {
+            logger.error(error)
+            next()
+        }
+    }
 }
+
 
