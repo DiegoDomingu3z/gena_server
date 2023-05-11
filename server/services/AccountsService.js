@@ -25,10 +25,8 @@ class AccountsService {
                 !data.lastName ||
                 !data.userName ||
                 !data.password ||
-                !data.teamLead ||
-                !data.groupLead ||
                 !data.privileges ||
-                !data.companyName) {
+                !data.departmentId) {
                 return 401
             }
             const userNameCheck = await middleware.checkIfUserNameExists(data.userName)
@@ -36,17 +34,19 @@ class AccountsService {
                 return "USERNAME EXISTS ALREADY"
             } else if (userNameCheck == 200) {
                 const cryptPass = await middleware.encryptPassword(data.password)
+                const dept = await dbContext.Department.findById(data.departmentId)
+                const lead = await dbContext.Account.findById(data.teamLeadId)
                 const sanitizedData = {
                     firstName: data.firstName,
                     lastName: data.lastName,
                     userName: data.userName,
                     password: cryptPass,
-                    department: data.department,
+                    department: dept.name,
                     departmentId: data.departmentId,
                     privileges: data.privileges,
-                    companyName: data.companyName,
                     groupLead: data.groupLead,
-                    teamLead: data.teamLead,
+                    teamLead: `${lead.firstName} ${lead.lastName}`,
+                    teamLeadId: data.teamLeadId
                 }
                 const newData = await dbContext.Account.create(sanitizedData)
                 logger.log(newData)

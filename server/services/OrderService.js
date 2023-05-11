@@ -15,7 +15,7 @@ class OrderService {
                 for (let i = 0; i < data.labels.length; i++) {
                     const label = data.labels[i];
                     const check = await dbContext.Label.findById(label.labelId)
-                    if (check.isBulkLabel == true) {
+                    if (check.isBulkLabel != true) {
                         needsApproval.push(label._id)
                     }
                 }
@@ -156,7 +156,7 @@ class OrderService {
                             return Promise.resolve(403)
                         } else {
                             await dbContext.Order.findByIdAndDelete(id)
-                            return
+                            return order
                         }
                     }
                 }
@@ -287,6 +287,21 @@ class OrderService {
     async getAllInCart(data) {
         const cart = await dbContext.Label.find({ _id: { $in: data.id } })
         return cart
+    }
+
+    async getApprovalOrder(token) {
+        try {
+            const user = this.checkIfUserExists(token)
+            if (user == 400) { return user }
+            else if (user.privileges != "group-lead" && user.privileges != "team-lead") {
+                return Promise.resolve(401)
+            } else {
+                const data = await dbContext.Order.find({})
+            }
+        } catch (error) {
+            logger.error(error)
+            return error
+        }
     }
 
 }
