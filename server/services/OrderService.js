@@ -296,7 +296,8 @@ class OrderService {
             else if (user.privileges != "group-lead" && user.privileges != "team-lead") {
                 return Promise.resolve(401)
             } else {
-                const data = await dbContext.Order.find({})
+                const data = await dbContext.Account.find({ $or: [{ teamLeadId: user._id }, { groupLeadId: user._id }] })
+
             }
         } catch (error) {
             logger.error(error)

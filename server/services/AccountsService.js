@@ -21,6 +21,8 @@ class AccountsService {
 
     async createAccount(data) {
         try {
+            let lead;
+            let groupLead;
             if (!data.firstName ||
                 !data.lastName ||
                 !data.userName ||
@@ -35,7 +37,12 @@ class AccountsService {
             } else if (userNameCheck == 200) {
                 const cryptPass = await middleware.encryptPassword(data.password)
                 const dept = await dbContext.Department.findById(data.departmentId)
-                const lead = await dbContext.Account.findById(data.teamLeadId)
+                if (data.teamLeadId == '') {
+                    lead = { firstName: '', lastName: '' }
+                } else { lead = await dbContext.Account.findById(data.teamLeadId) }
+                if (data.groupLeadId == '') {
+                    groupLead = { firstName: '', lastName: '' }
+                } else { groupLead = await dbContext.Account.findById(data.groupLeadId) }
                 const sanitizedData = {
                     firstName: data.firstName,
                     lastName: data.lastName,
@@ -44,9 +51,11 @@ class AccountsService {
                     department: dept.name,
                     departmentId: data.departmentId,
                     privileges: data.privileges,
-                    groupLead: data.groupLead,
+                    groupLead: `${groupLead.firstName} ${groupLead.lastName}`,
+                    groupLeadId: data.groupLeadId,
                     teamLead: `${lead.firstName} ${lead.lastName}`,
-                    teamLeadId: data.teamLeadId
+                    teamLeadId: data.teamLeadId,
+                    email: data.email
                 }
                 const newData = await dbContext.Account.create(sanitizedData)
                 logger.log(newData)

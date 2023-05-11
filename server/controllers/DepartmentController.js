@@ -8,7 +8,7 @@ export class DepartmentController extends BaseController {
         this.router
             .post('/create', this.createDepartment)
             .get('/all', this.getAllDepartments)
-            .get('/users', this.getUsersInDepartment)
+            .get('/:id/users', this.getUsersInDepartment)
             .get('/team-lead', this.getTeamLeads)
     }
 
@@ -42,7 +42,8 @@ export class DepartmentController extends BaseController {
 
     async getUsersInDepartment(req, res, next) {
         try {
-            const users = await departmentService.getUsersInDepartment()
+            const id = req.params.id
+            const users = await departmentService.getUsersInDepartment(id)
             return res.status(200).send(users)
         } catch (error) {
             logger.error(error)
