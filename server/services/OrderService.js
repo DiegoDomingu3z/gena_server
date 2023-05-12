@@ -291,13 +291,51 @@ class OrderService {
 
     async getApprovalOrder(token) {
         try {
-            const user = this.checkIfUserExists(token)
+            const user = await this.checkIfUserExists(token)
             if (user == 400) { return user }
             else if (user.privileges != "group-lead" && user.privileges != "team-lead") {
                 return Promise.resolve(401)
             } else {
                 const data = await dbContext.Account.find({ $or: [{ teamLeadId: user._id }, { groupLeadId: user._id }] })
+                const ids = data.map(account => account._id);
+                const status = 'waiting for approval'
+                const orders = await dbContext.Order.find({ creatorId: { $in: ids }, status: { $eq: status } })
+                return orders
+            }
+        } catch (error) {
+            logger.error(error)
+            return error
+        }
+    }
 
+    async approveOrder(token, id) {
+        try {
+            const user = await this.checkIfUserExists(token)
+            if (user == 400) { return user }
+            else if (user.privileges != "group-lead"
+                && user.privileges != "team-lead") { return 401 } else {
+                const filter = { _id: id }
+                const update = { $set: { status: 'approved' } }
+                const options = { returnOriginal: false }
+                const order = await dbContext.Order.findOneAndUpdate(filter, update, options)
+                return order
+            }
+        } catch (error) {
+            logger.error(error)
+            return error
+        }
+    }
+    async declineOrder(token, id) {
+        try {
+            const user = await this.checkIfUserExists(token)
+            if (user == 400) { return user }
+            else if (user.privileges != "group-lead"
+                && user.privileges != "team-lead") { return 401 } else {
+                const filter = { _id: id }
+                const update = { $set: { status: 'declined' } }
+                const options = { returnOriginal: false }
+                const order = await dbContext.Order.findOneAndUpdate(filter, update, options)
+                return order
             }
         } catch (error) {
             logger.error(error)

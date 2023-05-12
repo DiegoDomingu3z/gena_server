@@ -11,7 +11,7 @@ export const OrderSchema = new Schema({
     notes: { type: String },
     createdOn: { type: Date, required: true, default: Date.now() },
     updatedOn: { type: Date, required: true, default: Date.now() },
-    status: { type: String, enum: ['waiting for approval', 'approved', 'processing', 'delivered'] },
+    status: { type: String, enum: ['waiting for approval', 'approved', 'processing', 'delivered', 'declined'] },
     labels: [
         {
             qty: { type: Number, required: true },

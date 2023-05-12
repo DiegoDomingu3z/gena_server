@@ -18,6 +18,8 @@ export class OrderController extends BaseController {
             .get('/delivered-orders', this.getDeliveredOrders) // done
             .get('/cart', this.getCart)
             .get('/need-to-approve', this.getApprovalOrder)
+            .put('/:id/approve', this.approveOrder)
+            .put('/:id/decline', this.declineOrder)
     }
 
 
@@ -208,11 +210,42 @@ export class OrderController extends BaseController {
         try {
             const token = req.header("Authorization")
             const orders = await orderService.getApprovalOrder(token)
+            if (orders == 400) {
+                res.status(400).send("NO ACCESS")
+            } else {
+                res.status(200).send(orders)
+            }
+        } catch (error) {
+            logger.error(error)
+            next()
+        }
+    }
+
+
+
+    async approveOrder(req, res, next) {
+        try {
+            const token = req.header("Authorization")
+            const id = req.params.id
+            const orderApproved = await orderService.approveOrder(token, id)
+            res.status(200).send(orderApproved)
+        } catch (error) {
+            logger.error(error)
+            next()
+        }
+    }
+    async declineOrder(req, res, next) {
+        try {
+            const token = req.header("Authorization")
+            const id = req.params.id
+            const declinedOrder = await orderService.declineOrder(token, id)
+            res.status(200).send(declinedOrder)
         } catch (error) {
             logger.error(error)
             next()
         }
     }
 }
+
 
 
