@@ -20,6 +20,7 @@ export class LabelsController extends BaseController {
             .delete('/label/delete/:id', this.removeLabel)
             .get('/get/category/:categoryId/subCategory/:subCatId', this.getLabelsInCats)
             .get('/search', this.searchLabel)
+            .post('/find-pdf-fields', this.getFieldsFromLabel)
     }
 
 
@@ -218,6 +219,33 @@ export class LabelsController extends BaseController {
             const { q } = req.query;
             const foundData = await labelsService.searchLabel(q)
             res.status(200).send(foundData)
+        } catch (error) {
+            logger.error(error);
+            next();
+        }
+    }
+
+
+
+    async getFieldsFromLabel(req, res, next) {
+        try {
+            logger.log("Yo")
+            upload.array('pdf', 2)(req, res, async (err) => {
+                logger.log(req.files, "THESE ARE THE FILES")
+                if (err) {
+                    return next(err);
+                } else {
+                    const files = req.files;
+                    const buffer = []
+                    for (let i = 0; i < files.length; i++) {
+                        const fileToPrint = files[i];
+                        const pdfBuffer = Buffer.from(fileToPrint.buffer);
+                        buffer.push(pdfBuffer)
+                    }
+                    const fields = await labelsService.getFieldsFromLabel(buffer[0])
+                    res.status(200).send(fields)
+                }
+            });
         } catch (error) {
             logger.error(error);
             next();

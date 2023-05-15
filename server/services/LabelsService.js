@@ -1,7 +1,11 @@
+import { PDFDocument } from "pdf-lib";
 import { dbContext } from "../db/DbContext";
 import { logger } from "../utils/Logger"
+import { PDFTextField } from 'pdf-lib';
+import { PDFCheckBox } from 'pdf-lib';
 const fs = require('fs');
 const multer = require('multer');
+const pdfjs = require('pdfjs-dist');
 
 class LabelsService {
 
@@ -141,6 +145,42 @@ class LabelsService {
                 ]
             });
             return foundData;
+
+        } catch (error) {
+            logger.log(error)
+            return error
+        }
+    }
+
+    async getFieldsFromLabel(buffer) {
+        try {
+            const pdfDoc = await PDFDocument.load(new Uint8Array(buffer));
+            const form = pdfDoc.getForm();
+            const fieldNames = form.getFields().map(field => field.getName());
+            const types = []
+            const labelObjects = []
+            for (let i = 0; i < fieldNames.length; i++) {
+                const field = fieldNames[i];
+                try {
+                    const checkbox = form.getCheckBox(field);
+                    types.push('checkbox')
+
+                } catch (error) {
+                    types.push('text')
+                }
+
+            }
+            for (let i = 0; i < fieldNames.length; i++) {
+                const name = fieldNames[i];
+                const type = types[i]
+                let obj = {
+                    name: name,
+                    type: type
+                }
+                labelObjects.push(obj)
+            }
+            logger.log(labelObjects)
+            return labelObjects
 
         } catch (error) {
             logger.log(error)
