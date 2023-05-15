@@ -89,7 +89,13 @@ class OrderService {
                 if (user.privileges != 'printshop') {
                     return Promise.resolve(403)
                 } else {
-                    const orders = await dbContext.Order.find({ status: 'approved' })
+                    let orders = await dbContext.Order.find({ status: 'approved' })
+                    for (let i = 0; i < orders.length; i++) {
+                        const order = orders[i];
+                        const labelIds = order.labels.map(l => l.labelId);
+                        const labels = dbContext.Label.find({ _id: { $in: labelIds } })
+                        logger.log(labels)
+                    }
                     return orders
                 }
             }
@@ -300,6 +306,7 @@ class OrderService {
                 const ids = data.map(account => account._id);
                 const status = 'waiting for approval'
                 const orders = await dbContext.Order.find({ creatorId: { $in: ids }, status: { $eq: status } })
+
                 return orders
             }
         } catch (error) {
