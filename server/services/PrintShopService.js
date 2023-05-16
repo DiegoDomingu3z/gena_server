@@ -25,6 +25,7 @@ class PrintShopService {
                 // variables we will use later
                 let pdfDoc;
                 let path;
+                let finalPaths = []
                 const mainFolderPath = await this.createMainFolder(user, order)
                 // loop through all the labels in the order sent
                 for (let i = 0; i < order.labels.length; i++) {
@@ -79,23 +80,36 @@ class PrintShopService {
                             let newName = findOrder.fileName.slice(0, -4);
                             path = `${mainFolderPath}/${materialType}/${newName}(${i}).pdf`
                         }
-                        await fs.promises.writeFile(path, pdfBytes)
-
+                        if (fs.existsSync(path)) {
+                            let newName = findOrder.fileName.slice(0, -4);
+                            path = `${mainFolderPath}/${materialType}/${newName}(${i}).pdf`
+                            await fs.promises.writeFile(path, pdfBytes)
+                        } else {
+                            await fs.promises.writeFile(path, pdfBytes)
+                        }
+                        finalPaths.push(path)
                     }
                 }
+                await this.addFinalPath(finalPaths, id)
             }
-            this.updateOrder(id)
-            return Promise.resolve(200)
+            await this.updateOrder(id)
+            const finishedOrder = await dbContext.Order.findById(id)
+            return Promise.resolve(finishedOrder)
         } catch (error) {
             logger.error(error)
             return error
         }
     }
 
+    async addFinalPath(arr, id) {
+        await dbContext.Order.findByIdAndUpdate(id, { finalOrderPaths: arr })
+        return
+    }
 
     async updateOrder(id) {
-        await dbContext.Order.findOneAndUpdate(id, { status: 'processing', updatedOn: Date.now() })
-        return
+        const data = await dbContext.Order.findByIdAndUpdate(id, { status: 'processing', updatedOn: Date.now() })
+        logger.log(data)
+        return Promise.resolve(data)
     }
 
 
@@ -127,7 +141,7 @@ class PrintShopService {
                 if (!order) {
                     return Promise.resolve(400)
                 } else {
-                    const updatedOrder = await dbContext.Order.findOneAndUpdate(id, { status: 'delivered', updatedOn: Date.now() })
+                    const updatedOrder = await dbContext.Order.findByIdAndUpdate(id, { status: 'delivered', updatedOn: Date.now() })
                     return Promise.resolve(200)
                 }
             }

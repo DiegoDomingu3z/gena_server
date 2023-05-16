@@ -17,22 +17,30 @@ export class PrintShopController extends BaseController {
             const token = req.header('Authorization')
             const printedOrder = await printShopService.createFilesToPrint(token, order)
             let statusCode, message;
-            switch (printedOrder) {
-                case 200:
+            switch (typeof printedOrder) {
+                case 'object':
                     statusCode = 200;
-                    message = "ORDER IS NOW PROCESSING";
+                    message = printedOrder;
                     break;
-                case 400:
-                    statusCode = 400;
-                    message = "NO USER FOUND";
-                    break;
-                case 403:
-                    statusCode = 403;
-                    message = "FORBIDDEN";
-                    break;
-                case 404:
-                    statusCode = 404;
-                    message = "NO ORDER FOUND";
+                case 'number':
+                    switch (printedOrder) {
+                        case 400:
+                            statusCode = 400;
+                            message = "NO USER FOUND";
+                            break;
+                        case 403:
+                            statusCode = 403;
+                            message = "FORBIDDEN";
+                            break;
+                        case 404:
+                            statusCode = 404;
+                            message = "NO ORDER FOUND";
+                            break;
+                        default:
+                            statusCode = 500;
+                            message = "INTERNAL SERVER ERROR";
+                            break;
+                    }
                     break;
                 default:
                     statusCode = 500;

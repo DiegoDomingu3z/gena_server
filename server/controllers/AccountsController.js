@@ -11,6 +11,7 @@ export class AccountsController extends BaseController {
             .put('/logout', this.logout)
             .delete('/delete-user/:id', this.deleteUser)
             .get('', this.getMyAccount)
+            .get('/all', this.getUsers)
 
 
 
@@ -129,6 +130,16 @@ export class AccountsController extends BaseController {
             } else {
                 res.status(200).send(user)
             }
+        } catch (error) {
+            logger.error(error)
+            next(error)
+        }
+    }
+
+    async getUsers(req, res, next) {
+        try {
+            const users = await accountsService.getUsers()
+            res.status(200).send(users)
         } catch (error) {
             logger.error(error)
             next(error)

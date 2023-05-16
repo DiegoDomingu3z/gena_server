@@ -26,5 +26,6 @@ export const OrderSchema = new Schema({
             createdOn: { type: Date, default: Date.now() },
             updatedOn: { type: Date, default: Date.now() }
         }
-    ]
+    ],
+    finalOrderPaths: { type: Array }
 })

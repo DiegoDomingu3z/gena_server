@@ -173,6 +173,16 @@ class AccountsService {
         }
     }
 
+    async getUsers() {
+        try {
+            const users = await dbContext.Account.find()
+            return users
+        } catch (error) {
+            logger.error(error)
+            return error
+        }
+    }
+
 
 
 
