@@ -406,6 +406,30 @@ class OrderService {
         }
     }
 
+
+    async printShopDeliverOrder(id, token) {
+        try {
+            const user = await dbContext.Account.findOne({ accessToken: token })
+            if (user.privileges != 'printshop') {
+                return Promise.resolve(401)
+            } else {
+                const order = await dbContext.Order.findById(id)
+                if (!order) {
+                    return Promise.resolve(400)
+                } else {
+                    const filter = { _id: id }
+                    const update = { $set: { status: 'delivered' } }
+                    const options = { returnOriginal: false }
+                    const updatedOrder = await dbContext.Order.findOneAndUpdate(filter, update, options)
+                    return updatedOrder
+                }
+            }
+        } catch (error) {
+            logger.error(error)
+            return error
+        }
+    }
+
 }
 
 

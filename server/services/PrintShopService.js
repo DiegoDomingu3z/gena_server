@@ -6,7 +6,8 @@ const filePath = require('path');
 const util = require('util');
 const mkdir = util.promisify(fs.mkdir);
 const { readFile, writeFile } = require('fs/promises');
-
+const { exec } = require('child_process');
+const path = require('path');
 class PrintShopService {
     async createFilesToPrint(token, id) {
         try {
@@ -52,7 +53,7 @@ class PrintShopService {
                             return Promise.resolve(400)
                         } else {
                             // find the path to the file
-                            let pdfDocPath = `${findOrder.pdfPath}${findOrder.categoryName}/${findOrder.subCategoryName}/${findOrder.fileName}`
+                            let pdfDocPath = `${findOrder.pdfPath}/${findOrder.categoryName}/${findOrder.subCategoryName}/${findOrder.fileName}`
                             // load the file
                             pdfDoc = await PDFDocument.load(await readFile(pdfDocPath))
                         }
@@ -134,6 +135,7 @@ class PrintShopService {
     async deliverOrder(id, token) {
         try {
             const user = await dbContext.Account.findOne({ accessToken: token })
+            logger.log(user[0])
             if (!user) {
                 return Promise.resolve(400)
             } else if (user.privileges != 'printshop') {
@@ -151,6 +153,46 @@ class PrintShopService {
             logger.error(error)
             return error
         }
+    }
+
+    async openFileManger(id) {
+        try {
+            const order = await dbContext.Order.findById(id)
+            let command;
+            let substring
+            const orderId = id
+            const filePath = order.finalOrderPaths[0]
+            const index = filePath.indexOf(id);
+
+            if (index !== -1) {
+                substring = filePath.substring(0, index + orderId.length);
+                console.log(substring);
+            } else {
+                logger.log('orderId not found in the string');
+            }
+
+            if (process.platform === 'darwin') {
+                // macOS
+                command = `open "${substring}"`;
+            } else if (process.platform === 'win32') {
+                // Windows
+                command = `start "" "${substring}"`;
+            } else {
+                // Linux or other systems
+                command = `xdg-open "${substring}"`;
+            }
+
+            exec(command, (error) => {
+                if (error) {
+                    console.error(`Failed to open folder in file manager: ${error.message}`);
+                }
+            });
+            return
+        } catch (error) {
+            logger.error(error)
+            return error
+        }
+
     }
 
 
