@@ -8,6 +8,7 @@ export class PrintShopController extends BaseController {
         this.router
             .post('/order/:id/printing', this.createFilesToPrint)
             .post('/order/:id/delivered', this.deliverOrder)
+            .put('/openFileManger/:id', this.openFileManger)
     }
 
 
@@ -83,6 +84,17 @@ export class PrintShopController extends BaseController {
         } catch (error) {
             logger.log(error)
             next(error)
+        }
+    }
+
+
+    async openFileManger(req, res, next) {
+        try {
+            const id = req.params.id
+            await printShopService.openFileManger(id)
+            res.status(200).send(id)
+        } catch (error) {
+
         }
     }
 }

@@ -21,6 +21,7 @@ export class OrderController extends BaseController {
             .get('/need-to-approve', this.getApprovalOrder)
             .put('/:id/approve', this.approveOrder)
             .put('/:id/decline', this.declineOrder)
+            .put('/:id/deliver', this.printShopDeliverOrder)
     }
 
 
@@ -241,6 +242,25 @@ export class OrderController extends BaseController {
             const id = req.params.id
             const declinedOrder = await orderService.declineOrder(token, id)
             res.status(200).send(declinedOrder)
+        } catch (error) {
+            logger.error(error)
+            next()
+        }
+    }
+
+
+    async printShopDeliverOrder(req, res, next) {
+        try {
+            const orderId = req.params.id
+            const token = req.header("Authorization")
+            const updatedOrder = await orderService.printShopDeliverOrder(orderId, token)
+            if (updatedOrder == 401) {
+                res.status(401).send("FORBIDDEN")
+            } else if (updatedOrder == 400) {
+                res.status(400).send("ORDER NOT FOUND")
+            } else {
+                res.status(200).send(updatedOrder)
+            }
         } catch (error) {
             logger.error(error)
             next()
