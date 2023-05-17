@@ -1,6 +1,7 @@
 import { orderService } from "../services/OrderService";
 import BaseController from "../utils/BaseController";
 import { logger } from "../utils/Logger";
+
 export class OrderController extends BaseController {
     constructor() {
         super('api/orders')

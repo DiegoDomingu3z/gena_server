@@ -6,6 +6,7 @@ const util = require('util');
 const mkdir = util.promisify(fs.mkdir);
 const rmdir = util.promisify(fs.rm)
 const rename = util.promisify(fs.rename);
+const filePath = require('path');
 class CategoryService {
 
 
@@ -48,13 +49,16 @@ class CategoryService {
                 if (exists) {
                     return 403
                 } else {
-                    const path = await mkdir(`../../../repos/inventive/gena_2/public/images/pdflabels/${data.name}`, { recursive: true })
-                    const bulkPath = await mkdir(`../../../repos/inventive/gena_2/public/images/bulk/${data.name}`, { recursive: true })
+                    const i = filePath.join(__dirname, '..', '..', '..', 'gena_2', 'public', 'images', 'pdflabels', `${data.name}`)
+                    logger.log(i)
+                    const path = await mkdir(i, { recursive: true })
+                    const b = filePath.join(__dirname, '..', '..', '..', 'gena_2', 'public', 'images', 'bulk', `${data.name}`)
+                    const bulkPath = await mkdir(b, { recursive: true })
                     const cat = await dbContext.Category.create({
                         name: data.name,
                         creatorId: user._id,
-                        path: `../../../repos/inventive/gena_2/public/images/pdflabels/${data.name}`,
-                        bulkPath: `../../../repos/inventive/gena_2/public/images/bulk/${data.name}`
+                        path: i,
+                        bulkPath: b
                     })
                     return cat
                 }
@@ -78,8 +82,9 @@ class CategoryService {
                 if (!cat) {
                     return 401
                 } else {
-                    const newPath = `../../../repos/inventive/gena_2/public/images/pdflabels/${data.name}`
-                    const bulkPath = `../../../repos/inventive/gena_2/public/images/bulk/${data.name}`
+
+                    const newPath = filePath.join(__dirname, '..', '..', '..', 'gena_2', 'public', 'images', 'pdflabels', `${data.name}`, { recursive: true })
+                    const bulkPath = filePath.join(__dirname, '..', '..', '..', 'gena_2', 'public', 'images', 'bulk', `${data.name}`, { recursive: true })
                     await rename(cat.path, newPath)
                     await rename(cat.bulkPath, bulkPath)
                     const todayDate = new Date()

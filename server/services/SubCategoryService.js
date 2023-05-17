@@ -5,6 +5,7 @@ const util = require('util');
 const mkdir = util.promisify(fs.mkdir);
 const rename = util.promisify(fs.rename);
 const rmdir = util.promisify(fs.rm)
+const filePath = require('path');
 class SubCategoryService {
 
     async createSubCat(token, catId, data) {

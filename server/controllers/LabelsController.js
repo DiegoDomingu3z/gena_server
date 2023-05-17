@@ -7,6 +7,7 @@ const { promisify } = require('util');
 const pipeline = promisify(require("stream").pipeline)
 const fs = require('fs');
 const upload = multer();
+const filePath = require('path');
 
 export class LabelsController extends BaseController {
     constructor() {
@@ -54,9 +55,10 @@ export class LabelsController extends BaseController {
                                 const fileToPrint = files[i];
                                 const fileName = await fileToPrint.originalname;
                                 if (i == 0) {
-                                    path = `../../../repos/inventive/gena_2/public/images/pdflabels/${catName}/${subCatName}/${fileName}`
+                                    path = filePath.join(__dirname, '..', '..', '..', 'gena_2', 'public', 'images', 'pdflabels', `${catName}`, `${subCatName}`, `${fileName}`)
+
                                 } else {
-                                    path = `../../../repos/inventive/gena_2/public/images/bulk/${catName}/${subCatName}/${fileName}`
+                                    path = filePath.join(__dirname, '..', '..', '..', 'gena_2', 'public', 'images', 'bulk', `${catName}`, `${subCatName}`, `${fileName}`)
                                 }
                                 const pdfBuffer = Buffer.from(fileToPrint.buffer);
                                 await fs.promises.writeFile(path, pdfBuffer)
