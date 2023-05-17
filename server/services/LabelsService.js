@@ -4,6 +4,7 @@ import { logger } from "../utils/Logger"
 import { PDFTextField } from 'pdf-lib';
 import { PDFCheckBox } from 'pdf-lib';
 const fs = require('fs');
+const filePath = require('path');
 const multer = require('multer');
 const pdfjs = require('pdfjs-dist');
 
@@ -28,14 +29,16 @@ class LabelsService {
             let fields = [];
             let bulkPath
             if (data.isBulkLabel == true) {
-                bulkPath = `../../../repos/inventive/gena_2/public/images/bulk/`
+                bulkPath = filePath.join(__dirname, '..', '..', '..', 'gena_2', 'public', 'images', 'bulk', `${data.name}`)
             }
             if (data.isKanban == true) {
                 fields = data.fields
             }
 
+            const pdfPath = filePath.join(__dirname, '..', '..', '..', 'gena_2', 'public', 'images', 'pdflabels');
+
             labelData = {
-                pdfPath: `../../../repos/inventive/gena_2/public/images/pdflabels/`,
+                pdfPath: pdfPath,
                 pdfBulkPath: bulkPath,
                 fields: fields,
                 maxOrderQty: data.maxOrderQty,
@@ -98,10 +101,10 @@ class LabelsService {
         if (!label) {
             return Promise.resolve(404)
         } else {
-            let path = `${label.pdfPath}/${label.categoryName}/${label.subCategoryName}/${label.fileName}`
+            let path = filePath.join(__dirname, '..', '..', '..', 'gena_2', 'public', 'images', 'pdflabels');
             let bulkPath;
             if (label.isBulkLabel == true) {
-                bulkPath = `${label.pdfBulkPath}/${label.categoryName}/${label.subCategoryName}/${label.fileName}`
+                bulkPath = filePath.join(__dirname, '..', '..', '..', 'gena_2', 'public', 'images', 'bulk', `${label.name}`)
                 await fs.unlink(bulkPath, (err) => {
                     if (err) {
                         console.error(err);

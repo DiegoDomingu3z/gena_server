@@ -2,6 +2,7 @@ import { dbContext } from "../db/DbContext"
 import { logger } from "../utils/Logger"
 import { PDFDocument } from 'pdf-lib'
 const fs = require('fs');
+const filePath = require('path');
 const util = require('util');
 const mkdir = util.promisify(fs.mkdir);
 const { readFile, writeFile } = require('fs/promises');
@@ -114,7 +115,8 @@ class PrintShopService {
 
 
     async createMainFolder(user, order) {
-        const mainFolderPath = `../../../repos/inventive/gena_2/public/images/prints/${user.department}-${user.firstName}-${user.lastName}-${order._id}`
+        const mainFolderPath = filePath.join(__dirname, '..', '..', '..', 'gena_2', 'public', 'images', 'prints', `${user.department}-${user.firstName}-${user.lastName}-${order._id}`)
+        // const mainFolderPath = `../../../repos/inventive/gena_2/public/images/prints/${user.department}-${user.firstName}-${user.lastName}-${order._id}`
         await mkdir(mainFolderPath, { recursive: true });
         return Promise.resolve(mainFolderPath)
     }
