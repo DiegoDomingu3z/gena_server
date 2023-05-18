@@ -27,9 +27,10 @@ class SubCategoryService {
                         name: data.name,
                         creatorId: user._id,
                         path: `${category.path}`,
-                        bulkPath: bulkPath,
+                        bulkPath: category.bulkPath,
                         categoryId: catId
                     })
+                    // changed bulkPath from bulkPath
                     return cat
                 }
             }
@@ -91,12 +92,12 @@ class SubCategoryService {
     async updateSubCat(token, id, data) {
         try {
             const user = await dbContext.Account.findOne({ accessToken: token })
-            if (!user) {
-                return Promise.resolve(403)
+            if (user.privileges != 'admin') {
+                return Promise.resolve(401)
             } else {
                 const subCat = await dbContext.SubCategory.findById(id)
                 if (!subCat) {
-                    return Promise.resolve(404)
+                    return Promise.resolve(400)
                 } else {
 
                     data['updatedOn'] = Date.now()

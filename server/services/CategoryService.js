@@ -83,8 +83,8 @@ class CategoryService {
                     return 401
                 } else {
 
-                    const newPath = filePath.join(__dirname, '..', '..', '..', 'gena_2', 'public', 'images', 'pdflabels', `${data.name}`, { recursive: true })
-                    const bulkPath = filePath.join(__dirname, '..', '..', '..', 'gena_2', 'public', 'images', 'bulk', `${data.name}`, { recursive: true })
+                    const newPath = filePath.join(__dirname, '..', '..', '..', 'gena_2', 'public', 'images', 'pdflabels', `${data.name}`)
+                    const bulkPath = filePath.join(__dirname, '..', '..', '..', 'gena_2', 'public', 'images', 'bulk', `${data.name}`)
                     await rename(cat.path, newPath)
                     await rename(cat.bulkPath, bulkPath)
                     const todayDate = new Date()

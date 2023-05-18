@@ -10,6 +10,8 @@ export class DepartmentController extends BaseController {
             .get('/all', this.getAllDepartments)
             .get('/:id/users', this.getUsersInDepartment)
             .get('/team-lead', this.getTeamLeads)
+            .put('/:id/update', this.updateDepartment)
+            .delete('/:id/remove', this.removeDepartment)
     }
 
 
@@ -55,6 +57,39 @@ export class DepartmentController extends BaseController {
         try {
             const leads = await departmentService.getLeads()
             return res.status(200).send(leads)
+        } catch (error) {
+            logger.error(error)
+            next()
+        }
+    }
+
+    async updateDepartment(req, res, next) {
+        try {
+            const token = req.header("Authorization")
+            const name = req.body
+            const id = req.params.id
+            const updatedDept = await departmentService.updateDepartment(token, name, id)
+            if (updatedDept == 401) {
+                res.status(401).send("FORBIDDEN")
+            } else {
+                res.status(200).send(updatedDept)
+            }
+        } catch (error) {
+            logger.error(error)
+            next()
+        }
+    }
+
+    async removeDepartment(req, res, next) {
+        try {
+            const token = req.header("Authorization")
+            const id = req.params.id
+            const deleteDept = await departmentService.removeDepartment(token, id)
+            if (deleteDept == 401) {
+                res.status(401).send("FORBIDDEN")
+            } else {
+                res.status(200).send(deleteDept)
+            }
         } catch (error) {
             logger.error(error)
             next()
