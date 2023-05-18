@@ -88,10 +88,10 @@ export class SubCategoryController extends BaseController {
             const subCatId = req.params.id
             const newData = req.body
             const data = await subCategoryService.updateSubCat(token, subCatId, newData)
-            if (data == 404) {
-                res.status(404).send("SUBCATEGORY NOT FOUND")
-            } else if (data == 403) {
-                res.status(403).send("YOU DON'T HAVE PERMISSION TO DO THIS ACTION")
+            if (data == 400) {
+                res.status(400).send("SUBCATEGORY NOT FOUND")
+            } else if (data == 401) {
+                res.status(401).send("YOU DON'T HAVE PERMISSION TO DO THIS ACTION")
             } else {
                 res.status(200).send(data)
             }
