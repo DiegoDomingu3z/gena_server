@@ -23,6 +23,7 @@ export const labelSchema = new Schema({
     subCategoryId: { type: ObjectId, ref: 'SubCategory', required: true },
     subCategoryName: { type: String, required: true },
     fileName: { type: String, required: true },
+    bulkFileName: { type: String },
     isKanban: { type: Boolean, required: true },
     materialTypeId: { type: String, required: true },
     name: { type: String, required: true }

@@ -38,12 +38,12 @@ class PrintShopService {
                     // check to see if that label is used to print in bulk
                     if (findOrder.isBulkLabel == true) {
                         if (!findOrder.pdfBulkPath) {
+                            logger.log("NO BULK PDF PATH FOUND")
                             return Promise.resolve(400)
                         } else {
-                            logger.log("NO BULK PDF PATH FOUND")
                             // find the path of the bulk path to print
                             // load the file
-                            let pdfBulkPath = `${findOrder.pdfBulkPath}/${findOrder.categoryName}/${findOrder.subCategoryName}/${findOrder.fileName}`
+                            let pdfBulkPath = `${findOrder.pdfBulkPath}/${findOrder.categoryName}/${findOrder.subCategoryName}/${findOrder.bulkFileName}`
                             pdfDoc = await PDFDocument.load(await readFile(pdfBulkPath))
                         }
                     } else {

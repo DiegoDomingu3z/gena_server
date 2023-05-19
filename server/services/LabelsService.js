@@ -29,7 +29,7 @@ class LabelsService {
             let fields = [];
             let bulkPath
             if (data.isBulkLabel == true) {
-                bulkPath = filePath.join(__dirname, '..', '..', '..', 'gena_2', 'public', 'images', 'bulk', `${data.name}`)
+                bulkPath = filePath.join(__dirname, '..', '..', '..', 'gena_2', 'public', 'images', 'bulk')
             }
             if (data.isKanban == true) {
                 fields = data.fields
@@ -53,7 +53,8 @@ class LabelsService {
                 fileName: data.fileName,
                 isKanban: data.isKanban,
                 materialTypeId: data.materialTypeId,
-                name: data.name
+                name: data.name,
+                bulkFileName: data.bulkFileName
 
 
             }

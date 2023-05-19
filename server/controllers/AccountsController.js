@@ -1,4 +1,5 @@
 import { accountsService } from "../services/AccountsService";
+import { internalUserAutomation } from "../services/InternalUserAutomation";
 import BaseController from "../utils/BaseController";
 import { logger } from "../utils/Logger";
 
@@ -12,6 +13,7 @@ export class AccountsController extends BaseController {
             .delete('/delete-user/:id', this.deleteUser)
             .get('', this.getMyAccount)
             .get('/all', this.getUsers)
+            .get('/automation', this.userAutomation)
 
 
 
@@ -143,6 +145,16 @@ export class AccountsController extends BaseController {
         } catch (error) {
             logger.error(error)
             next(error)
+        }
+    }
+
+
+    async userAutomation(req, res, next) {
+        try {
+            const users = await internalUserAutomation.gatherDepartments()
+            res.status(200).send(users)
+        } catch (error) {
+
         }
     }
 
