@@ -9,7 +9,7 @@ export class OrderController extends BaseController {
             .post('/create', this.createOrder) //done
             // UPDATED CAN BE USED FOR REGULAR UPDATES, PRINTSHOP, TEAM LEADS/GROUP
             .put('/update/:id', this.updateOrder)
-            .put('update/:orderId/label/:labelId', this.updateLabel)
+            .put('/update/:orderId/label/:labelId', this.updateLabel)
             .delete('/delete/:id', this.deleteOrder) // done
             .delete('/delete/:orderId/label/:labelId', this.deleteLabel) // done
             .get('/my-orders', this.getUserOrders) //done
@@ -68,6 +68,14 @@ export class OrderController extends BaseController {
         try {
             const token = req.header("Authorization")
             const data = req.body
+            const orderId = req.params.orderId
+            const labelId = req.params.labelId
+            const updateLabel = await orderService.updateLabel(token, orderId, data, labelId)
+            if (updateLabel == 404) {
+                res.status(400).send("USER OR ORDER NOT FOUND")
+            } else {
+                res.status(200).send(updateLabel)
+            }
         } catch (error) {
             logger.error(error)
             next()
