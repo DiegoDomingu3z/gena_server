@@ -45,35 +45,26 @@ class OrderService {
         try {
             const user = await this.checkIfUserExists(token)
             const order = await dbContext.Order.findById(orderId)
-            if (user._id == order.creatorId ) { 
+            if (user._id == order.creatorId) {
                 return Promise.resolve(401)
             } else {
-                const activeLabel = order.labels.filter(l => labelId.equals(l._id))
+                const label = order.labels.filter(l => l._id == labelId)
+                logger.log(label[0].textToPut)
                 const newArr = []
-                for (let i = 0; i < activeLabel.textToPut.length; i++) {
-                    const textObj = activeLabel.textToPut[i];
-                    const newData = data[textObj]
-                    let obj = {
-                        name: textObj.name,
-                        text: newData.text
-                    }
-                    logger.log(obj)
+                for (let i = 0; i < data.length; i++) {
+                    const firstObj = data[i];
+                    const originalData = label[0].textToPut[i]
+                    let newObj = {}
+                    newObj['name'] = originalData.name
+                    newObj['text'] = firstObj[originalData.name]
+                    newArr.push(newObj)
                 }
-                const update = { $set: {} };
-                data.forEach((field, index) => {
-                    update.$set[`label.field${index + 1}.name`] = field.name;
-                    update.$set[`label.field${index + 1}.text`] = field.text;
-                });
-
-                const options = { returnOriginal: false };
-                
-                const updatedLabel = await dbContext.Order.findOneAndUpdate({ _id: orderId },
-                    update,
-                    options
-                    );
-                    
-                    return updatedLabel
-                }
+                const filter = { _id: orderId, "labels._id": labelId }
+                const update = { $set: { "labels.$.textToPut": newArr } }
+                const options = { returnOriginal: false }
+                const updatedLabel = await dbContext.Order.findOneAndUpdate(filter, update, options)
+                return updatedLabel
+            }
         } catch (error) {
             logger.log(error)
             return error
@@ -92,36 +83,40 @@ class OrderService {
             } else {
                 const orders = await dbContext.Order.find({ creatorId: user._id })
                 let arr = []
-                    for (let i = 0; i < orders.length; i++) {
-                        const order = orders[i];
-                        const labelIds = order.labels.map(l => l.labelId);
-                        const labels = []
-                        for (let s = 0; s < labelIds.length; s++) {
-                            const id = labelIds[s];
-                            const label = await dbContext.Label.findById(id)
-                            labels.push(label)
-                        }
-                        // const labels = await dbContext.Label.find({ _id: { $in: [...labelIds, ...labelIds] } })
-
-                        let doubleArr = []
-                        for (let r = 0; r < order.labels.length; r++) {
-                            let obj = {
-                                pdf: labels[r].pdfPath,
-                                docNum: labels[r].docNum,
-                                unitPack: labels[r].unitPack,
-                                name: labels[r].name,
-                                categoryName: labels[r].categoryName,
-                                subCategoryName: labels[r].subCategoryName,
-                                fileName: labels[r].fileName,
-                                labelId: labels[r]._id,
-                                orderId: order._id,
-                            }
-                            doubleArr.push(obj)
-
-                        }
-                        arr.push(doubleArr)
+                for (let i = 0; i < orders.length; i++) {
+                    const order = orders[i];
+                    const labelIds = order.labels.map(l => l.labelId);
+                    const labels = []
+                    for (let s = 0; s < labelIds.length; s++) {
+                        const id = labelIds[s];
+                        const label = await dbContext.Label.findById(id)
+                        labels.push(label)
                     }
-                return {orders, arr}
+                    // const labels = await dbContext.Label.find({ _id: { $in: [...labelIds, ...labelIds] } })
+
+                    let doubleArr = []
+                    for (let r = 0; r < order.labels.length; r++) {
+                        const lbl = order.labels[r];
+                        logger.log(lbl)
+                        let obj = {
+                            pdf: labels[r].pdfPath,
+                            docNum: labels[r].docNum,
+                            unitPack: labels[r].unitPack,
+                            name: labels[r].name,
+                            categoryName: labels[r].categoryName,
+                            subCategoryName: labels[r].subCategoryName,
+                            fileName: labels[r].fileName,
+                            labelId: labels[r]._id,
+                            orderId: order._id,
+                            _id: lbl._id
+
+                        }
+                        doubleArr.push(obj)
+
+                    }
+                    arr.push(doubleArr)
+                }
+                return { orders, arr }
             }
         } catch (error) {
             logger.error(error)
@@ -449,7 +444,7 @@ class OrderService {
                 const filter = { _id: id }
                 const update = { $set: { status: 'approved' } }
                 const options = { returnOriginal: false }
-                const order = await dbContext.Order.findOneAndUpdate(filter, update, options)
+                const order = await dbContext.Order.Update(filter, update, options)
                 return order
             }
         } catch (error) {
