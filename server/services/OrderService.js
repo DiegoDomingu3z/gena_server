@@ -41,6 +41,45 @@ class OrderService {
 
     }
 
+    async updateLabel(token, orderId, data, labelId) {
+        try {
+            const user = await this.checkIfUserExists(token)
+            const order = await dbContext.Order.findById(orderId)
+            if (user._id == order.creatorId ) { 
+                return Promise.resolve(401)
+            } else {
+                const activeLabel = order.labels.filter(l => labelId.equals(l._id))
+                const newArr = []
+                for (let i = 0; i < activeLabel.textToPut.length; i++) {
+                    const textObj = activeLabel.textToPut[i];
+                    const newData = data[textObj]
+                    let obj = {
+                        name: textObj.name,
+                        text: newData.text
+                    }
+                    logger.log(obj)
+                }
+                const update = { $set: {} };
+                data.forEach((field, index) => {
+                    update.$set[`label.field${index + 1}.name`] = field.name;
+                    update.$set[`label.field${index + 1}.text`] = field.text;
+                });
+
+                const options = { returnOriginal: false };
+                
+                const updatedLabel = await dbContext.Order.findOneAndUpdate({ _id: orderId },
+                    update,
+                    options
+                    );
+                    
+                    return updatedLabel
+                }
+        } catch (error) {
+            logger.log(error)
+            return error
+        }
+    }
+
 
 
 
@@ -52,7 +91,37 @@ class OrderService {
                 return Promise.resolve(400)
             } else {
                 const orders = await dbContext.Order.find({ creatorId: user._id })
-                return orders
+                let arr = []
+                    for (let i = 0; i < orders.length; i++) {
+                        const order = orders[i];
+                        const labelIds = order.labels.map(l => l.labelId);
+                        const labels = []
+                        for (let s = 0; s < labelIds.length; s++) {
+                            const id = labelIds[s];
+                            const label = await dbContext.Label.findById(id)
+                            labels.push(label)
+                        }
+                        // const labels = await dbContext.Label.find({ _id: { $in: [...labelIds, ...labelIds] } })
+
+                        let doubleArr = []
+                        for (let r = 0; r < order.labels.length; r++) {
+                            let obj = {
+                                pdf: labels[r].pdfPath,
+                                docNum: labels[r].docNum,
+                                unitPack: labels[r].unitPack,
+                                name: labels[r].name,
+                                categoryName: labels[r].categoryName,
+                                subCategoryName: labels[r].subCategoryName,
+                                fileName: labels[r].fileName,
+                                labelId: labels[r]._id,
+                                orderId: order._id,
+                            }
+                            doubleArr.push(obj)
+
+                        }
+                        arr.push(doubleArr)
+                    }
+                return {orders, arr}
             }
         } catch (error) {
             logger.error(error)
