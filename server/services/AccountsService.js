@@ -3,6 +3,7 @@ import { middleware } from "../middleware/middleware"
 import { logger } from "../utils/Logger"
 import { authTokens } from "./AuthTokens"
 import bcrypt from "bcrypt";
+import { emailService } from "./EmailService";
 
 
 class AccountsService {
@@ -185,7 +186,60 @@ class AccountsService {
 
 
 
-
+    async updateAccount(token, id, data) {
+        try {
+            let pass;
+            let newDept
+            let teamLead;
+            let groupLead
+            const currentUser = await dbContext.Account.findOne({ accessToken: token })
+            if (currentUser.privileges != 'admin') {
+                return Promise.resolve(401)
+            } else {
+                const account = await dbContext.Account.findById(id)
+                if (data.password != '') {
+                    pass = await middleware.encryptPassword(data.password)
+                } else {
+                    pass = account.password
+                }
+                if (data.departmentId != account.departmentId) {
+                    newDept = await dbContext.Department.findById(data.departmentId)
+                } else {
+                    newDept = account.department
+                }
+                if (data.teamLeadId != account.teamLeadId) {
+                    teamLead = await dbContext.Account.findById(data.teamLeadId)
+                }
+                if (data.groupLeadId != account.groupLeadId) {
+                    groupLead = await dbContext.Account.findById(data.groupLeadId)
+                }
+                const newData = {
+                    firstName: data.firstName != '' ? data.firstName : account.firstName,
+                    lastName: data.lastName != '' ? data.lastName : account.lastName,
+                    userName: data.userName != '' ? data.userName : account.userName,
+                    password: pass,
+                    department: newDept.name,
+                    departmentId: data.departmentId != account.departmentId ? data.departmentId : account.departmentId,
+                    privileges: data.privileges != '' ? data.privileges : account.privileges,
+                    groupLead: data.groupLeadId != account.groupLeadId ? ` ${groupLead.firstName} ${groupLead.lastName}` : account.groupLead,
+                    groupLeadId: data.groupLeadId != account.groupLeadId ? data.groupLeadId : account.groupLeadId,
+                    teamLead: data.teamLeadId != account.teamLeadId ? `${teamLead.firstName} ${teamLead.lastName}` : account.teamLead,
+                    teamLeadId: data.teamLeadId != account.teamLeadId ? teamLead._id : account.teamLeadId,
+                    email: data.email,
+                    updateAt: new Date()
+                }
+                const filter = { _id: id }
+                const reVal = { returnOriginal: false }
+                const updatedAccount = await dbContext.Account.findByIdAndUpdate(filter, newData, reVal)
+                const us = await dbContext.Account.findById(id)
+                // await emailService.sendUpdatedCredentials(newData, token, data.password)
+                return Promise.resolve(us)
+            }
+        } catch (error) {
+            logger.log(error)
+            return error
+        }
+    }
 
 
 

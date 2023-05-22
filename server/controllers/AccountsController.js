@@ -14,6 +14,7 @@ export class AccountsController extends BaseController {
             .get('', this.getMyAccount)
             .get('/all', this.getUsers)
             .get('/automation', this.userAutomation)
+            .put('/:id/update', this.updateAccount)
 
 
 
@@ -151,10 +152,29 @@ export class AccountsController extends BaseController {
 
     async userAutomation(req, res, next) {
         try {
-            const users = await internalUserAutomation.gatherDepartments()
+            const depts = await internalUserAutomation.gatherDepartments()
+            const users = await internalUserAutomation.gatherEmployees()
             res.status(200).send(users)
         } catch (error) {
+            logger.error(error)
+            next(error)
+        }
+    }
 
+    async updateAccount(req, res, next) {
+        try {
+            const token = req.header("Authorization")
+            const account = req.params.id
+            const data = req.body
+            const updatedData = accountsService.updateAccount(token, account, data)
+            if (updatedData == 401) {
+                res.status(401).send("FORBIDDEN")
+            } else {
+                res.status(200).send(updatedData)
+            }
+        } catch (error) {
+            logger.error(error)
+            next(error)
         }
     }
 

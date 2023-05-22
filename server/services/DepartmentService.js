@@ -96,6 +96,16 @@ class DepartmentService {
         }
     }
 
+    async getGroupLeads() {
+        try {
+            const leads = await dbContext.Account.find({ privileges: 'group-lead' })
+            return leads
+        } catch (error) {
+            logger.log(error)
+            return error
+        }
+    }
+
 
 }
 

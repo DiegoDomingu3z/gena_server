@@ -10,6 +10,7 @@ export class DepartmentController extends BaseController {
             .get('/all', this.getAllDepartments)
             .get('/:id/users', this.getUsersInDepartment)
             .get('/team-lead', this.getTeamLeads)
+            .get('/group-leads', this.getGroupLeads)
             .put('/:id/update', this.updateDepartment)
             .delete('/:id/remove', this.removeDepartment)
     }
@@ -90,6 +91,17 @@ export class DepartmentController extends BaseController {
             } else {
                 res.status(200).send(deleteDept)
             }
+        } catch (error) {
+            logger.error(error)
+            next()
+        }
+    }
+
+
+    async getGroupLeads(req, res, next) {
+        try {
+            const leads = await departmentService.getGroupLeads()
+            return res.status(200).send(leads)
         } catch (error) {
             logger.error(error)
             next()
