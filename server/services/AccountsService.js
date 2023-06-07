@@ -96,6 +96,7 @@ class AccountsService {
             } else {
                 const checkPass = await bcrypt.compare(password.toString(), user.password)
                 if (checkPass == true) {
+                    // checking if the password sent is the same as the one in the database
                     const newGeneratedToken = await authTokens.authToken()
                     const updatedUserDoc = await dbContext.Account.findOneAndUpdate({ userName: user.userName }, { accessToken: newGeneratedToken }, { returnDocument: true })
                     const updatedDoc = await dbContext.Account.findOne({ accessToken: newGeneratedToken })
@@ -142,6 +143,7 @@ class AccountsService {
 
     async removeUser(adminToken, userId) {
         try {
+            // checking user token
             const isAdmin = await dbContext.Account.findOne({ accessToken: adminToken })
             if (isAdmin.privileges == "admin") {
                 const data = await dbContext.Account.findByIdAndDelete(userId)
@@ -164,6 +166,7 @@ class AccountsService {
 
     async getMyAccount(token) {
         try {
+            // getting account by their access token
             const account = await dbContext.Account.findOne({ accessToken: token })
             if (!account) {
                 return Promise.resolve(400)

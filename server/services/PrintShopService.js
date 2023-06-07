@@ -24,11 +24,12 @@ class PrintShopService {
                 if (!order) {
                     return Promise.resolve(404)
                 }
+                const userOrder = dbContext.Account.findById(order.creatorId)
                 // variables we will use later
                 let pdfDoc;
                 let path;
                 let finalPaths = []
-                const mainFolderPath = await this.createMainFolder(user, order)
+                const mainFolderPath = await this.createMainFolder(userOrder, order)
                 // loop through all the labels in the order sent
                 for (let i = 0; i < order.labels.length; i++) {
                     const label = order.labels[i];

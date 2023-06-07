@@ -21,7 +21,6 @@ class InternalUserAutomation {
                     logger.log(err);
                     return;
                 } else {
-                    logger.log(res);
                     return res.body;
                 }
             });
@@ -98,7 +97,7 @@ class InternalUserAutomation {
                             const dept = await dbContext.Department.findOne({ name: lead.employee_department })
                             let password = await middleware.encryptPassword(`${lead.firstName}_${lead.lastName}${passNum}`)
                             if (lead.employee_position == 'Group Lead' || lead.employee_position == 'IWS Group Lead'
-                                || e.employee_position === 'ITD Vice President' || e.employee_position === 'President') {
+                                || lead.employee_position === 'ITD Vice President' || lead.employee_position === 'President') {
                                 priv = 'group-lead'
                             } else if (lead.employee_position == 'Team Lead' || lead.employee_position == "IWS Team Lead") {
                                 priv = 'team-lead'
@@ -151,7 +150,7 @@ class InternalUserAutomation {
                             const groupLead = await dbContext.Account.findOne({ lastName: leadName, privileges: 'group-lead' })
                             let password = await middleware.encryptPassword(`${lead.firstName}_${lead.lastName}${passNum}`)
                             if (lead.employee_position == 'Group Lead' || lead.employee_position == 'IWS Group Lead'
-                                || e.employee_position === 'ITD Vice President' || e.employee_position === 'President') {
+                                || lead.employee_position === 'ITD Vice President' || lead.employee_position === 'President') {
                                 priv = 'group-lead'
                             } else if (lead.employee_position == 'Team Lead' || lead.employee_position == "IWS Team Lead") {
                                 priv = 'team-lead'
@@ -200,9 +199,9 @@ class InternalUserAutomation {
                     const employee = teamMembers[i];
                     let passNum = Math.floor(Math.random() * (999 - 100 + 1)) + 100;
                     const dept = await dbContext.Department.findOne({ name: employee.employee_department })
-                    if (employee.employee_department == "shop-iws") {
-                        logger.log(employee)
-                    }
+                    // if (employee.employee_department == "shop-iws") {
+                    //     logger.log(employee)
+                    // }
                     const words = employee.employee_lead.split(" ");
                     const leadName = words[words.length - 1];
                     const groupLead = await dbContext.Account.findOne({ lastName: leadName, privileges: 'group-lead' })
@@ -217,6 +216,7 @@ class InternalUserAutomation {
                     }
                     if (employee.firstName == "Diego") {
                         logger.log("DIEGO'S PASSWORD: ", passNum)
+                        console.log("Diego", passNum)
                     }
                     const sanatizedData = {
                         firstName: employee.firstName,

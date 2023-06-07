@@ -166,7 +166,7 @@ export class AccountsController extends BaseController {
             const token = req.header("Authorization")
             const account = req.params.id
             const data = req.body
-            const updatedData = accountsService.updateAccount(token, account, data)
+            const updatedData = await accountsService.updateAccount(token, account, data)
             if (updatedData == 401) {
                 res.status(401).send("FORBIDDEN")
             } else {
