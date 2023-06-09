@@ -63,6 +63,10 @@ class OrderService {
                 const update = { $set: { "labels.$.textToPut": newArr } }
                 const options = { returnOriginal: false }
                 const updatedLabel = await dbContext.Order.findOneAndUpdate(filter, update, options)
+                const lab = await dbContext.Label.findById(label[0].labelId)
+                if (lab.isBulkLabel == false) {
+                    await dbContext.Order.findOneAndUpdate(filter, { status: 'waiting for approval' })
+                }
                 return updatedLabel
             }
         } catch (error) {
@@ -364,7 +368,7 @@ class OrderService {
                         for (let i = 0; i < data.labels.length; i++) {
                             const label = data.labels[i];
                             const check = await dbContext.Label.findById(label.labelId)
-                            if (check.isBulkLabel == true) {
+                            if (check.isBulkLabel != true) {
                                 needsApproval.push(label._id)
                             }
                         }
@@ -444,7 +448,7 @@ class OrderService {
                 const filter = { _id: id }
                 const update = { $set: { status: 'approved' } }
                 const options = { returnOriginal: false }
-                const order = await dbContext.Order.Update(filter, update, options)
+                const order = await dbContext.Order.findOneAndUpdate(filter, update, options)
                 return order
             }
         } catch (error) {

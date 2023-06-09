@@ -24,11 +24,12 @@ class PrintShopService {
                 if (!order) {
                     return Promise.resolve(404)
                 }
+                const userOrder = dbContext.Account.findById(order.creatorId)
                 // variables we will use later
                 let pdfDoc;
                 let path;
                 let finalPaths = []
-                const mainFolderPath = await this.createMainFolder(user, order)
+                const mainFolderPath = await this.createMainFolder(userOrder, order)
                 // loop through all the labels in the order sent
                 for (let i = 0; i < order.labels.length; i++) {
                     const label = order.labels[i];
@@ -38,12 +39,12 @@ class PrintShopService {
                     // check to see if that label is used to print in bulk
                     if (findOrder.isBulkLabel == true) {
                         if (!findOrder.pdfBulkPath) {
+                            logger.log("NO BULK PDF PATH FOUND")
                             return Promise.resolve(400)
                         } else {
-                            logger.log("NO BULK PDF PATH FOUND")
                             // find the path of the bulk path to print
                             // load the file
-                            let pdfBulkPath = `${findOrder.pdfBulkPath}/${findOrder.categoryName}/${findOrder.subCategoryName}/${findOrder.fileName}`
+                            let pdfBulkPath = `${findOrder.pdfBulkPath}/${findOrder.categoryName}/${findOrder.subCategoryName}/${findOrder.bulkFileName}`
                             pdfDoc = await PDFDocument.load(await readFile(pdfBulkPath))
                         }
                     } else {

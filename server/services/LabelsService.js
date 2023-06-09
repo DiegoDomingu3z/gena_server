@@ -29,7 +29,7 @@ class LabelsService {
             let fields = [];
             let bulkPath
             if (data.isBulkLabel == true) {
-                bulkPath = filePath.join(__dirname, '..', '..', '..', 'gena_2', 'public', 'images', 'bulk', `${data.name}`)
+                bulkPath = filePath.join(__dirname, '..', '..', '..', 'gena_2', 'public', 'images', 'bulk')
             }
             if (data.isKanban == true) {
                 fields = data.fields
@@ -53,7 +53,8 @@ class LabelsService {
                 fileName: data.fileName,
                 isKanban: data.isKanban,
                 materialTypeId: data.materialTypeId,
-                name: data.name
+                name: data.name,
+                bulkFileName: data.bulkFileName
 
 
             }
@@ -174,7 +175,12 @@ class LabelsService {
 
             }
             for (let i = 0; i < fieldNames.length; i++) {
+                let max
                 const name = fieldNames[i];
+                let textField = form.getTextField(name)
+                const maxLen = textField.getMaxLength()
+                if (maxLen === undefined) console.log('No max length')
+                else console.log(`Max length is ${maxLen}`)
                 const type = types[i]
                 let obj = {
                     name: name,

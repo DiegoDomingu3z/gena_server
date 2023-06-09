@@ -1,4 +1,5 @@
 import { accountsService } from "../services/AccountsService";
+import { internalUserAutomation } from "../services/InternalUserAutomation";
 import BaseController from "../utils/BaseController";
 import { logger } from "../utils/Logger";
 
@@ -12,6 +13,8 @@ export class AccountsController extends BaseController {
             .delete('/delete-user/:id', this.deleteUser)
             .get('', this.getMyAccount)
             .get('/all', this.getUsers)
+            .get('/automation', this.userAutomation)
+            .put('/:id/update', this.updateAccount)
 
 
 
@@ -140,6 +143,35 @@ export class AccountsController extends BaseController {
         try {
             const users = await accountsService.getUsers()
             res.status(200).send(users)
+        } catch (error) {
+            logger.error(error)
+            next(error)
+        }
+    }
+
+
+    async userAutomation(req, res, next) {
+        try {
+            const depts = await internalUserAutomation.gatherDepartments()
+            const users = await internalUserAutomation.gatherEmployees()
+            res.status(200).send(users)
+        } catch (error) {
+            logger.error(error)
+            next(error)
+        }
+    }
+
+    async updateAccount(req, res, next) {
+        try {
+            const token = req.header("Authorization")
+            const account = req.params.id
+            const data = req.body
+            const updatedData = await accountsService.updateAccount(token, account, data)
+            if (updatedData == 401) {
+                res.status(401).send("FORBIDDEN")
+            } else {
+                res.status(200).send(updatedData)
+            }
         } catch (error) {
             logger.error(error)
             next(error)

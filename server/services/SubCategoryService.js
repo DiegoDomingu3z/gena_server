@@ -8,6 +8,14 @@ const rmdir = util.promisify(fs.rm)
 const filePath = require('path');
 class SubCategoryService {
 
+    /**
+* CREATE SUBCATEGORY
+* Brings in users token, categoryId, and sub-category data to be sanatized and inputed into DB
+* @param {String} token
+ @param {ObjectId} catId 
+ @param {Object} data 
+*/
+
     async createSubCat(token, catId, data) {
         try {
             const user = await dbContext.Account.findOne({ accessToken: token })
