@@ -23,6 +23,9 @@ class OrderService {
                 if (needsApproval.length > 0) {
                     status = 'waiting for approval'
                 } else { status = 'approved' }
+                if (user.privileges == 'group-lead') {
+                    status = 'approved'
+                }
                 const sanatizedData = {
                     creatorId: user._id,
                     creatorName: `${user.firstName} ${user.lastName}`,

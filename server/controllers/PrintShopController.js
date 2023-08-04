@@ -8,7 +8,7 @@ export class PrintShopController extends BaseController {
         this.router
             .post('/order/:id/printing', this.createFilesToPrint)
             .post('/order/:id/delivered', this.deliverOrder)
-            .put('/openFileManger/:id', this.openFileManger)
+            .post('/openFileManger/:id', this.openFileManger)
     }
 
 

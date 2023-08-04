@@ -5,7 +5,7 @@ import { DbConnection } from './db/DbConfig'
 import { logger } from './utils/Logger'
 import { createServer } from 'http'
 
-// create server & socketServer
+
 const app = express()
 const port = process.env.PORT || 3000
 
@@ -16,10 +16,10 @@ Startup.ConfigureRoutes(app)
 
 process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 1;
 
-// Establish Socket
+
 socketProvider.initialize(httpServer)
 
-// Connect to Atlas MongoDB
+
 DbConnection.connect()
 
 
