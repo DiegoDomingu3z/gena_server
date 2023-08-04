@@ -24,7 +24,7 @@ class PrintShopService {
                 if (!order) {
                     return Promise.resolve(404)
                 }
-                const userOrder = dbContext.Account.findById(order.creatorId)
+                const userOrder = await dbContext.Account.findById(order.creatorId)
                 // variables we will use later
                 let pdfDoc;
                 let path;
@@ -102,6 +102,10 @@ class PrintShopService {
             logger.error(error)
             return error
         }
+    }
+
+    async sleepFileCreation(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
     }
 
     async addFinalPath(arr, id) {
