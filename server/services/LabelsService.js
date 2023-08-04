@@ -177,10 +177,6 @@ class LabelsService {
             for (let i = 0; i < fieldNames.length; i++) {
                 let max
                 const name = fieldNames[i];
-                let textField = form.getTextField(name)
-                const maxLen = textField.getMaxLength()
-                if (maxLen === undefined) console.log('No max length')
-                else console.log(`Max length is ${maxLen}`)
                 const type = types[i]
                 let obj = {
                     name: name,
@@ -195,6 +191,12 @@ class LabelsService {
             logger.log(error)
             return error
         }
+    }
+
+
+    async getLabelById(id) {
+        const label = dbContext.Label.findById(id)
+        return label
     }
 
 

@@ -66,11 +66,22 @@ class PrintShopService {
                     // if kanban (files you put text on do the loop)
                     if (findOrder.isKanban == true) {
                         for (let i = 0; i < findOrder.fields.length; i++) {
-                            const field = findOrder.fields[i];
-                            const inputName = field.name
-                            const fieldToFill = form.getTextField(inputName)
-                            logger.log(label.textToPut[i].text)
-                            fieldToFill.setText(label.textToPut[i].text)
+                            try {
+                                const field = findOrder.fields[i];
+                                const inputName = field.name
+                                const fieldToFill = form.getTextField(inputName)
+                                logger.log(label.textToPut[i].text)
+                                fieldToFill.setText(label.textToPut[i].text)
+                            } catch (error) {
+                                const field = findOrder.fields[i];
+                                const inputName = field.name
+                                const checkbox = form.getCheckBox(inputName)
+                                if (label.textToPut[i].text) {
+                                    checkbox.check()
+                                    logger.log(label.textToPut[i].text)
+                                }
+                            }
+
                         }
                     }
                     // loop to print quantity the user requests

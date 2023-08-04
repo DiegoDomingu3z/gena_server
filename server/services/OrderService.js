@@ -52,9 +52,14 @@ class OrderService {
                 return Promise.resolve(401)
             } else {
                 const label = order.labels.filter(l => l._id == labelId)
-                logger.log(label[0].textToPut)
+                logger.log(label[0])
+                let objectWithQty = data.find(obj => "qty" in obj);
+                let qty
+                if (objectWithQty.qty != label[0].qty) {
+                    qty = objectWithQty.qty
+                } else { qty = label.qty }
                 const newArr = []
-                for (let i = 0; i < data.length; i++) {
+                for (let i = 0; i < (data.length - 1); i++) {
                     const firstObj = data[i];
                     const originalData = label[0].textToPut[i]
                     let newObj = {}
@@ -63,7 +68,7 @@ class OrderService {
                     newArr.push(newObj)
                 }
                 const filter = { _id: orderId, "labels._id": labelId }
-                const update = { $set: { "labels.$.textToPut": newArr } }
+                const update = { $set: { "labels.$.textToPut": newArr, "labels.$.qty": qty } }
                 const options = { returnOriginal: false }
                 const updatedLabel = await dbContext.Order.findOneAndUpdate(filter, update, options)
                 const lab = await dbContext.Label.findById(label[0].labelId)

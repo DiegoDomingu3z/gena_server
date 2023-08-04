@@ -22,6 +22,7 @@ export class LabelsController extends BaseController {
             .get('/get/category/:categoryId/subCategory/:subCatId', this.getLabelsInCats)
             .get('/search', this.searchLabel)
             .post('/find-pdf-fields', this.getFieldsFromLabel)
+            .get('label/byId/:id', this.getLabelById)
     }
 
 
@@ -248,6 +249,17 @@ export class LabelsController extends BaseController {
                     res.status(200).send(fields)
                 }
             });
+        } catch (error) {
+            logger.error(error);
+            next();
+        }
+    }
+
+    async getLabelById(req, res, next) {
+        try {
+            const id = req.params.id
+            const label = labelsService.getLabelById(id)
+            res.status(200).send(label)
         } catch (error) {
             logger.error(error);
             next();
