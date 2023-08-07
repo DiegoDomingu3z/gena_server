@@ -83,25 +83,60 @@ class PrintShopService {
                             }
 
                         }
+                    } else if (findOrder.isSerial) {
+                        // do separate loop if serial number so it can save serialNum in database for each file iteration
+                        for (let l = 0; l < label.qty; l++) {
+                            const orderedLabel = await dbContext.Label.findById(label.labelId)
+                            let serialCounter = orderedLabel.currentSerialNum
+                            for (let i = 0; i < fieldNames.length; i++) {
+                                const field = fieldNames[i];
+                                const inputName = field
+                                const fieldToFill = form.getTextField(inputName)
+                                fieldToFill.setText(serialCounter.toString())
+                                serialCounter++
+
+                            }
+                            let serialData = { currentSerialNum: serialCounter }
+                            const filterId = { _id: label.labelId }
+                            const reCurr = { returnOriginal: false }
+                            const updatedLabel = await dbContext.Label.findByIdAndUpdate(filterId, serialData, reCurr)
+                            let pdfBytes = await pdfDoc.save()
+                            if (l == 0) {
+                                path = `${mainFolderPath}/${materialType}/${findOrder.fileName}`
+                            } else {
+                                let newName = findOrder.fileName.slice(0, -4);
+                                path = `${mainFolderPath}/${materialType}/${newName}(${l}).pdf`
+                            }
+                            if (fs.existsSync(path)) {
+                                let newName = findOrder.fileName.slice(0, -4);
+                                path = `${mainFolderPath}/${materialType}/${newName}(${l}).pdf`
+                                await fs.promises.writeFile(path, pdfBytes)
+                            } else {
+                                await fs.promises.writeFile(path, pdfBytes)
+                            }
+                            finalPaths.push(path)
+                        }
                     }
-                    // loop to print quantity the user requests
-                    for (let i = 0; i < label.qty; i++) {
-                        const pdfBytes = await pdfDoc.save()
-                        // NOW CREATE FILE PATH TO WHERE TO SAVE THE PDF DOC
-                        if (i == 0) {
-                            path = `${mainFolderPath}/${materialType}/${findOrder.fileName}`
-                        } else {
-                            let newName = findOrder.fileName.slice(0, -4);
-                            path = `${mainFolderPath}/${materialType}/${newName}(${i}).pdf`
+                    if (findOrder.isSerial != true) {
+                        // loop to print quantity the user requests
+                        for (let i = 0; i < label.qty; i++) {
+                            const pdfBytes = await pdfDoc.save()
+                            // NOW CREATE FILE PATH TO WHERE TO SAVE THE PDF DOC
+                            if (i == 0) {
+                                path = `${mainFolderPath}/${materialType}/${findOrder.fileName}`
+                            } else {
+                                let newName = findOrder.fileName.slice(0, -4);
+                                path = `${mainFolderPath}/${materialType}/${newName}(${i}).pdf`
+                            }
+                            if (fs.existsSync(path)) {
+                                let newName = findOrder.fileName.slice(0, -4);
+                                path = `${mainFolderPath}/${materialType}/${newName}(${i}).pdf`
+                                await fs.promises.writeFile(path, pdfBytes)
+                            } else {
+                                await fs.promises.writeFile(path, pdfBytes)
+                            }
+                            finalPaths.push(path)
                         }
-                        if (fs.existsSync(path)) {
-                            let newName = findOrder.fileName.slice(0, -4);
-                            path = `${mainFolderPath}/${materialType}/${newName}(${i}).pdf`
-                            await fs.promises.writeFile(path, pdfBytes)
-                        } else {
-                            await fs.promises.writeFile(path, pdfBytes)
-                        }
-                        finalPaths.push(path)
                     }
                 }
                 await this.addFinalPath(finalPaths, id)

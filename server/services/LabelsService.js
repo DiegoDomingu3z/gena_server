@@ -54,9 +54,12 @@ class LabelsService {
                 isKanban: data.isKanban,
                 materialTypeId: data.materialTypeId,
                 name: data.name,
-                bulkFileName: data.bulkFileName
+                bulkFileName: data.bulkFileName,
+                isSerial: data.isSerial
 
-
+            }
+            if (data.isSerial == true) {
+                labelData.currentSerialNum = data.currentSerialNum
             }
             const newDoc = await dbContext.Label.create(labelData)
             logger.log(newDoc)

@@ -26,6 +26,8 @@ export const labelSchema = new Schema({
     bulkFileName: { type: String },
     isKanban: { type: Boolean, required: true },
     materialTypeId: { type: String, required: true },
-    name: { type: String, required: true }
+    name: { type: String, required: true },
+    isSerial: { type: Boolean },
+    currentSerialNum: { type: Number }
 })
 

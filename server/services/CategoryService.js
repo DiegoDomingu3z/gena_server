@@ -42,7 +42,7 @@ class CategoryService {
             const user = await dbContext.Account.findOne({ accessToken: token })
             if (!user) {
                 return 404
-            } else if (user.privileges != 'admin') {
+            } else if (user.privileges != 'admin' || user.privileges != 'printshop') {
                 return 401
             } else {
                 const exists = await dbContext.Category.findOne({ name: data.name })
@@ -75,7 +75,7 @@ class CategoryService {
             const user = await dbContext.Account.findOne({ accessToken: token })
             if (!user) {
                 return 404
-            } else if (user.privileges != 'admin') {
+            } else if (user.privileges != 'admin' || user.privileges != 'printshop') {
                 return 401
             } else {
                 const cat = await dbContext.Category.findById(id)
