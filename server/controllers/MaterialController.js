@@ -8,6 +8,7 @@ export class MaterialController extends BaseController {
         super('api/materials')
         this.router
             .post('/create', this.createMaterial)
+            .post('/update', this.updateMaterial)
             .get('/getAll', this.getAllMaterials)
     }
 
@@ -22,6 +23,23 @@ export class MaterialController extends BaseController {
                 const data = req.body
                 const newMaterial = await materialService.createMaterial(data, user._id)
                 res.status(200).send(newMaterial)
+            }
+        } catch (error) {
+            logger.log(error)
+            next(error)
+        }
+    }
+
+    async updateMaterial(req, res, next) {
+        try {
+            const token = req.header('Authorization')
+            const user = await dbContext.Account.findOne({ accessToken: token})
+            if (user.privileges != 'admin' && user.privileges != 'printshop') {
+                res.status(401).send("FORBIDDEN")
+            } else {
+                const data = req.body
+                const updatedMaterial = await materialService.updateMaterial(data, user._id)
+                res.status(200).send(updatedMaterial)
             }
         } catch (error) {
             logger.log(error)
