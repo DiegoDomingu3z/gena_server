@@ -58,7 +58,8 @@ class CategoryService {
                         name: data.name,
                         creatorId: user._id,
                         path: i,
-                        bulkPath: b
+                        bulkPath: b,
+                        visibility: data.visibility
                     })
                     return cat
                 }
