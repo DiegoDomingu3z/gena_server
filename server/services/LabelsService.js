@@ -124,9 +124,15 @@ class LabelsService {
                 }
                 return Promise.resolve(200)
             })
-
+            let stringId = id.toString()
+            await dbContext.Order.deleteMany({
+                $and: [
+                    { $or: [{ "labels.$.labelId": stringId }] }, // Matches the labelId
+                ]
+            })
             await dbContext.Label.findByIdAndDelete(id)
-            return Promise.resolve(200)
+
+            return Promise.resolve(id)
         }
     }
 

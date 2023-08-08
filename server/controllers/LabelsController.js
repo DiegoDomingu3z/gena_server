@@ -187,7 +187,7 @@ export class LabelsController extends BaseController {
             if (!user) {
                 res.status(404).send("USER IS NOT FOUND TO DO THIS ACTION")
             }
-            else if (user.privileges != 'admin' || user.privileges != 'printshop') {
+            else if (user.privileges != 'admin' && user.privileges != 'printshop') {
                 res.status(403).send("YOU DO NOT HAVE PERMISSION TO DO THIS")
             } else {
                 const data = await labelsService.removeLabel(labelId)
@@ -196,7 +196,7 @@ export class LabelsController extends BaseController {
                 } else if (data == 401) {
                     res.status(401).send("Could not delete file")
                 } else {
-                    res.status(200).send("DELETE LABEL")
+                    res.status(200).send(data)
                 }
             }
         } catch (error) {
