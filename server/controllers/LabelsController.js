@@ -219,8 +219,9 @@ export class LabelsController extends BaseController {
 
     async searchLabel(req, res, next) {
         try {
+            const departmentId = req.header("Authorization")
             const { q } = req.query;
-            const foundData = await labelsService.searchLabel(q)
+            const foundData = await labelsService.searchLabel(q, departmentId)
             res.status(200).send(foundData)
         } catch (error) {
             logger.error(error);

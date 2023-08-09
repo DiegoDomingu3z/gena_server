@@ -146,15 +146,32 @@ class LabelsService {
         }
     }
 
-    async searchLabel(data) {
+    async searchLabel(data, id) {
         try {
+            // gets documents of categories users have access to
+            const categoryIds = await dbContext.Category.find({
+                visibility: {
+                    $elemMatch: {
+                        $eq: id
+                    }
+                }
+            })
             const foundData = await dbContext.Label.find({
-                $or: [
-                    { fileName: { $regex: new RegExp(data, 'i') } },
-                    { docNum: { $regex: new RegExp(data, 'i') } },
-                    { categoryName: { $regex: new RegExp(data, 'i') } },
-                    { subCategoryName: { $regex: new RegExp(data, 'i') } },
-                    { name: { $regex: new RegExp(data, 'i') } }
+                $and: [
+                    {
+                        $or: [
+                            { fileName: { $regex: new RegExp(data, 'i') } },
+                            { docNum: { $regex: new RegExp(data, 'i') } },
+                            { categoryName: { $regex: new RegExp(data, 'i') } },
+                            { subCategoryName: { $regex: new RegExp(data, 'i') } },
+                            { name: { $regex: new RegExp(data, 'i') } },
+                        ]
+                    },
+                    {
+                        categoryId: {
+                            $in: categoryIds
+                        }
+                    }
                 ]
             });
             return foundData;

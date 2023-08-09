@@ -26,7 +26,7 @@ class SubCategoryService {
             } else {
                 if (!user) {
                     return 404
-                } else if (user.privileges != 'admin') {
+                } else if (user.privileges != 'admin' && user.privileges != 'printshop') {
                     return 401
                 } else {
                     const path = await mkdir(`${category.path}/${data.name}`, { recursive: true })
