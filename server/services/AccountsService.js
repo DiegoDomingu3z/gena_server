@@ -196,7 +196,10 @@ class AccountsService {
             let teamLead;
             let groupLead
             const currentUser = await dbContext.Account.findOne({ accessToken: token })
-            if (currentUser.privileges != 'admin') {
+            if (currentUser.privileges != 'admin' && currentUser.privileges != 'group-lead') {
+                return Promise.resolve(401)
+            }
+            if(currentUser.privileges == 'group-lead' && currentUser.departmentId != data.departmentId) {
                 return Promise.resolve(401)
             } else {
                 const account = await dbContext.Account.findById(id)
