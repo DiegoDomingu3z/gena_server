@@ -110,7 +110,9 @@ class OrderService {
                     for (let r = 0; r < order.labels.length; r++) {
                         const lbl = order.labels[r];
                         logger.log(lbl)
+                        logger.log(labels[r])
                         let obj = {
+                            maxOrderQty: labels[r].maxOrderQty,
                             pdf: labels[r].pdfPath,
                             docNum: labels[r].docNum,
                             unitPack: labels[r].unitPack,
@@ -121,7 +123,7 @@ class OrderService {
                             labelId: labels[r]._id,
                             orderId: order._id,
                             _id: lbl._id
-
+                            
                         }
                         doubleArr.push(obj)
 
