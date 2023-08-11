@@ -123,7 +123,9 @@ class OrderService {
                     for (let r = 0; r < order.labels.length; r++) {
                         const lbl = order.labels[r];
                         logger.log(lbl)
+                        logger.log(labels[r])
                         let obj = {
+                            maxOrderQty: labels[r].maxOrderQty,
                             pdf: labels[r].pdfPath,
                             docNum: labels[r].docNum,
                             unitPack: labels[r].unitPack,
@@ -134,7 +136,7 @@ class OrderService {
                             labelId: labels[r]._id,
                             orderId: order._id,
                             _id: lbl._id
-
+                            
                         }
                         doubleArr.push(obj)
 
@@ -282,7 +284,39 @@ class OrderService {
                     return Promise.resolve(403)
                 } else {
                     const orders = await dbContext.Order.find({ status: 'delivered' })
-                    return orders
+                    let arr = []
+                    for (let i = 0; i < orders.length; i++) {
+                        const order = orders[i];
+                        const labelIds = order.labels.map(l => l.labelId);
+                        // const labels = await dbContext.Label.find({ _id: { $in: labelIds } })
+                        const labels = []
+                        for (let s = 0; s < labelIds.length; s++) {
+                            const id = labelIds[s];
+                            const label = await dbContext.Label.findById(id)
+                            labels.push(label)
+                        }
+
+                        let doubleArr = []
+                        for (let r = 0; r < order.labels.length; r++) {
+                            const material = await dbContext.Material.findById(labels[r].materialTypeId)
+                            let obj = {
+                                pdf: labels[r].pdfPath,
+                                docNum: labels[r].docNum,
+                                unitPack: labels[r].unitPack,
+                                name: labels[r].name,
+                                categoryName: labels[r].categoryName,
+                                subCategoryName: labels[r].subCategoryName,
+                                fileName: labels[r].fileName,
+                                material: material.name
+                            }
+                            doubleArr.push(obj)
+
+                        }
+                        arr.push(doubleArr)
+                    }
+
+                    logger.log(orders, "THIS IS")
+                    return { orders, arr }
                 }
             }
         } catch (error) {
@@ -302,7 +336,7 @@ class OrderService {
                 if (!order) {
                     return Promise.resolve(400)
                 } else {
-                    if (!order.creatorId.equals(user._id)) {
+                    if (!order.creatorId.equals(user._id) && user.privileges != 'printshop') {
                         return Promise.resolve(403)
                     } else {
                         if (order.status == 'processing') {
