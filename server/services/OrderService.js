@@ -19,6 +19,18 @@ class OrderService {
                     if (check.isBulkLabel != true) {
                         needsApproval.push(label._id)
                     }
+                    logger.log(check.fields[0].type)
+                    if (check.fields[0].type) {
+                        let sanitizedText = []
+                        for (let i = 0; i < check.fields.length; i++) {
+                            const obj = label.textToPut[i];
+                            if (obj.text == '') {
+                                obj.text = 'false'
+                            }
+                            sanitizedText.push(obj)
+                        }
+                        data.labels[i].textToPut = sanitizedText
+                    }
                 }
                 logger.log(needsApproval.length)
                 if (needsApproval.length > 0) {
@@ -523,7 +535,7 @@ class OrderService {
                 for (let o = 0; o < order.labels.length; o++) {
                     const label = order.labels[o];
                     let id = label.labelId
-                    const l = await dbContext.Label.findById(id, 'categoryName subCategoryName fileName unitPack').exec()
+                    const l = await dbContext.Label.findById(id, 'categoryName subCategoryName fileName unitPack docNum').exec()
                     orderArr.push(l)
                 }
                 mainArr.push(orderArr)
