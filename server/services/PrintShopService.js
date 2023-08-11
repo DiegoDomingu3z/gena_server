@@ -76,7 +76,7 @@ class PrintShopService {
                                 const field = findOrder.fields[i];
                                 const inputName = field.name
                                 const checkbox = form.getCheckBox(inputName)
-                                if (label.textToPut[i].text) {
+                                if (label.textToPut[i].text == 'true') {
                                     checkbox.check()
                                     logger.log(label.textToPut[i].text)
                                 }

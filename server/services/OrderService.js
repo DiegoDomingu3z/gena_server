@@ -19,20 +19,21 @@ class OrderService {
                     if (check.isBulkLabel != true) {
                         needsApproval.push(label._id)
                     }
-                    logger.log(check.fields[0].type)
-                    if (check.fields[0].type) {
-                        let sanitizedText = []
-                        for (let i = 0; i < check.fields.length; i++) {
-                            const obj = label.textToPut[i];
-                            if (obj.text == '') {
-                                obj.text = 'false'
+                    if (check.fields.length > 1) {
+
+                        if (check.fields[0].type == 'checkbox') {
+                            let sanitizedText = []
+                            for (let i = 0; i < check.fields.length; i++) {
+                                const obj = label.textToPut[i];
+                                if (obj.text == '') {
+                                    obj.text = 'false'
+                                }
+                                sanitizedText.push(obj)
                             }
-                            sanitizedText.push(obj)
+                            data.labels[i].textToPut = sanitizedText
                         }
-                        data.labels[i].textToPut = sanitizedText
                     }
                 }
-                logger.log(needsApproval.length)
                 if (needsApproval.length > 0) {
                     status = 'waiting for approval'
                 } else { status = 'approved' }
@@ -136,7 +137,7 @@ class OrderService {
                             labelId: labels[r]._id,
                             orderId: order._id,
                             _id: lbl._id
-                            
+
                         }
                         doubleArr.push(obj)
 
