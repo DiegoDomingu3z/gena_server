@@ -22,6 +22,7 @@ export class OrderController extends BaseController {
             .put('/:id/approve', this.approveOrder)
             .put('/:id/decline', this.declineOrder)
             .put('/:id/deliver', this.printShopDeliverOrder)
+            .post('/group-lead/labels/to-see', this.getGroupLeadOrderApproveLabels)
     }
 
 
@@ -269,6 +270,17 @@ export class OrderController extends BaseController {
             } else {
                 res.status(200).send(updatedOrder)
             }
+        } catch (error) {
+            logger.error(error)
+            next()
+        }
+    }
+
+    async getGroupLeadOrderApproveLabels(req, res, next) {
+        try {
+            const orderArr = req.body
+            const labels = await orderService.getGroupLeadOrderApproveLabels(orderArr)
+            res.status(200).send(labels)
         } catch (error) {
             logger.error(error)
             next()

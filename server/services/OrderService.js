@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import { dbContext } from "../db/DbContext"
 import { logger } from "../utils/Logger";
 
@@ -18,8 +19,21 @@ class OrderService {
                     if (check.isBulkLabel != true) {
                         needsApproval.push(label._id)
                     }
+                    if (check.fields.length > 1) {
+
+                        if (check.fields[0].type == 'checkbox') {
+                            let sanitizedText = []
+                            for (let i = 0; i < check.fields.length; i++) {
+                                const obj = label.textToPut[i];
+                                if (obj.text == '') {
+                                    obj.text = 'false'
+                                }
+                                sanitizedText.push(obj)
+                            }
+                            data.labels[i].textToPut = sanitizedText
+                        }
+                    }
                 }
-                logger.log(needsApproval.length)
                 if (needsApproval.length > 0) {
                     status = 'waiting for approval'
                 } else { status = 'approved' }
@@ -123,7 +137,7 @@ class OrderService {
                             labelId: labels[r]._id,
                             orderId: order._id,
                             _id: lbl._id
-                            
+
                         }
                         doubleArr.push(obj)
 
@@ -182,6 +196,7 @@ class OrderService {
 
                         let doubleArr = []
                         for (let r = 0; r < order.labels.length; r++) {
+                            const material = await dbContext.Material.findById(labels[r].materialTypeId)
                             let obj = {
                                 pdf: labels[r].pdfPath,
                                 docNum: labels[r].docNum,
@@ -189,7 +204,8 @@ class OrderService {
                                 name: labels[r].name,
                                 categoryName: labels[r].categoryName,
                                 subCategoryName: labels[r].subCategoryName,
-                                fileName: labels[r].fileName
+                                fileName: labels[r].fileName,
+                                material: material.name
                             }
                             doubleArr.push(obj)
 
@@ -473,6 +489,7 @@ class OrderService {
                 const status = 'waiting for approval'
                 const orders = await dbContext.Order.find({ creatorId: { $in: ids }, status: { $eq: status } })
 
+
                 return orders
             }
         } catch (error) {
@@ -540,6 +557,30 @@ class OrderService {
         }
     }
 
+
+
+    async getGroupLeadOrderApproveLabels(arr) {
+        try {
+            const orderIds = arr.map(id => mongoose.Types.ObjectId(id));
+            const orders = await dbContext.Order.find({ _id: { $in: orderIds } })
+            let mainArr = []
+            for (let i = 0; i < orders.length; i++) {
+                let orderArr = []
+                const order = orders[i];
+                for (let o = 0; o < order.labels.length; o++) {
+                    const label = order.labels[o];
+                    let id = label.labelId
+                    const l = await dbContext.Label.findById(id, 'categoryName subCategoryName fileName unitPack docNum').exec()
+                    orderArr.push(l)
+                }
+                mainArr.push(orderArr)
+            }
+            return mainArr
+        } catch (error) {
+            logger.log(error)
+            return error
+        }
+    }
 }
 
 
