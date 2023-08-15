@@ -3,6 +3,7 @@ import { emailSender } from './EmailTransporter';
 import { logger } from '../utils/Logger';
 import { dbContext } from '../db/DbContext';
 const nodemailer = require("nodemailer");
+const mongoose = require('mongoose');
 class EmailService {
 
     async sendUserCredentials(data, token, pass) {
@@ -120,13 +121,138 @@ class EmailService {
             <br> <br>   
             `, // plain text body
             });
+
+
+
         }
 
+    }
+
+    async ticketingSystem(data, token) {
+        try {
+
+            const reportedUser = await dbContext.Account.findOne({ accessToken: token })
+            if (reportedUser.email) {
+                let transporter = nodemailer.createTransport({
+                    host: 'smtp-mail.outlook.com',
+                    port: 587,
+                    secure: false, // true for 465, false for other ports
+                    auth: {
+                        user: 'DiegoD@inventive-group.com',
+                        pass: process.env.GENA_ISSUE_PASS,
+                    },
+                    tls: {
+                        rejectUnauthorized: false,
+                    }
+                });
+                await transporter.sendMail({
+                    from: 'diegod@inventive-group.com', // sender address
+                    to: `diegod@inventive-group.com`, // list of receivers
+                    subject: "New Gena ticket", // Subject line
+                    html: `
+                    <!DOCTYPE html>
+                    <html lang="en">
+                    <head>
+                        <meta charset="UTF-8">
+                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                        <style>
+                        .red{
+                            color: #FF0000;
+                        }
+                        </style>
+                    </head>
+                    <body>
+                    <div>
+                    <h2 class="red">Gena Ticket</h2>
+                    <p>FROM: ${reportedUser.firstName} ${reportedUser.lastName}</p>
+                    <p>Subject: ${data.subject}</p>
+                    <p class="red">Urgency: ${data.importance}</p>
+                    <p>Description: ${data.description}</p>
+                    </div>
+                    </body>
+                    </html>
+                      
+                `, // plain text body
+                });
+            }
+        } catch (error) {
+
+        }
+    }
 
 
 
+    async leadApprovalEmail(order) {
+        try {
+            let groupLeadEmail = ''
+            let teamLeadEmail = ''
+            const user = await dbContext.Account.findById(order.creatorId)
+            const groupLead = await dbContext.Account.findById(user.groupLeadId)
+            if (user.teamLeadId != "") {
+                const teamLead = await dbContext.Account.findById(user.teamLeadId)
+                if (teamLead) {
+                    teamLeadEmail = teamLead.email
+                }
+            }
+            if (groupLead) {
+                groupLeadEmail = groupLead.email
+            }
 
 
+            // create a transporter
+            let transporter = nodemailer.createTransport({
+                host: 'smtp-mail.outlook.com',
+                port: 587,
+                secure: false,
+                auth: {
+                    user: 'PrintShop@inventive-group.com',
+                    pass: process.env.EMAIL_PASS,
+                },
+                tls: {
+                    rejectUnauthorized: false,
+                }
+            });
+
+            // send email to team lead
+            transporter.sendMail({
+                from: 'PrintShop@inventive-group.com', // sender address
+                to: `${groupLeadEmail}`,
+                cc: `${teamLeadEmail}`, // list of receivers
+                subject: "GENA New Order Approval Request", // Subject line
+                html: `
+                <!DOCTYPE html>
+                <html lang="en">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <style>
+                   
+                    </style>
+                </head>
+                <body>
+               <div>
+                <p>
+                    ${order.creatorName} is requesting Gena order approval
+                </p>
+                <p>
+                    OrderId: ${order._id}
+                </p>
+                    <p>
+                       Number of Labels: ${order.labels.length}
+                    </p>
+                <p>
+                </p>
+               </div>
+                </body>
+                </html>
+                  
+            `,
+            });
+
+            // error message
+        } catch (err) {
+            logger.log('Error (catch): ', err);
+        }
     }
 }
 
