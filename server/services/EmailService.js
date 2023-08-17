@@ -1,9 +1,9 @@
 import { orderService } from './OrderService';
-import { emailSender } from './EmailTransporter';
 import { logger } from '../utils/Logger';
 import { dbContext } from '../db/DbContext';
 const nodemailer = require("nodemailer");
 const mongoose = require('mongoose');
+const { createTransport } = require('./EmailTransporter')
 class EmailService {
 
     async sendUserCredentials(data, token, pass) {
@@ -130,52 +130,37 @@ class EmailService {
 
     async ticketingSystem(data, token) {
         try {
-
             const reportedUser = await dbContext.Account.findOne({ accessToken: token })
+            const toEmail = 'diegod@inventive-group.com'
+            const ccEmail = 'jacobp@inventive-group.com'
+            const subject = 'New Gena Ticket'
             if (reportedUser.email) {
-                let transporter = nodemailer.createTransport({
-                    host: 'smtp-mail.outlook.com',
-                    port: 587,
-                    secure: false, // true for 465, false for other ports
-                    auth: {
-                        user: 'Printshop@inventive-group.com',
-                        pass: process.env.EMAIL_PASS,
-                    },
-                    tls: {
-                        rejectUnauthorized: false,
-                    }
-                });
-                await transporter.sendMail({
-                    from: 'printshop@inventive-group.com', // sender address
-                    to: `diegod@inventive-group.com`,
-                    cc: 'jacobp@inventive-group.com', // list of receivers
-                    subject: "New Gena ticket", // Subject line
-                    html: `
-                    <!DOCTYPE html>
-                    <html lang="en">
-                    <head>
-                        <meta charset="UTF-8">
-                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                        <style>
-                        .red{
-                            color: #FF0000;
-                        }
-                        </style>
-                    </head>
-                    <body>
-                    <div>
-                    <h2 class="red">Gena Ticket</h2>
-                    <p>FROM: ${reportedUser.firstName} ${reportedUser.lastName}</p>
-                    <p>Subject: ${data.subject}</p>
-                    <p class="red">Urgency: ${data.importance}</p>
-                    <p>Description: ${data.description}</p>
-                    </div>
-                    </body>
-                    </html>
-                      
-                `, // plain text body
-                });
+                let body = `
+               <!DOCTYPE html>
+               <html lang="en">
+               <head>
+                   <meta charset="UTF-8">
+                   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                   <style>
+                   .red{
+                       color: #FF0000;
+                   }
+                   </style>
+               </head>
+               <body>
+               <div>
+               <h2 class="red">Gena Ticket</h2>
+               <p>FROM: ${reportedUser.firstName} ${reportedUser.lastName}</p>
+               <p>Subject: ${data.subject}</p>
+               <p class="red">Urgency: ${data.importance}</p>
+               <p>Description: ${data.description}</p>
+               </div>
+               </body>
+               </html>`
+                await createTransport(toEmail, subject, body, ccEmail)
+                return
             }
+
         } catch (error) {
 
         }
