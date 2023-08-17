@@ -276,6 +276,7 @@ class InternalUserAutomation {
                                     }
                                     const createdTeamMember = await dbContext.Account.create(data)
                                     // TODO CREATE EMAIL TO NOTIFY USER ABOUT ACCOUNT CREATION AND CREDENTIALS
+                                    // 
                                 } else if (userExists) {
                                     const filter = { _id: userExists._id }
                                     const update = {

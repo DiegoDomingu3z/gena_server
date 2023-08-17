@@ -10,12 +10,12 @@ class AccountsService {
 
 
     /**
-* CREATE ACCOUNT
-* checks if object contains all fields necessary 
-* checks to see if a user with that username already exists if it does return 401
-* sanatizes data to correctly go into database
-* If it cant create account it will send a 401
-* else it returns the new document
+* * CREATE ACCOUNT
+* ! checks if object contains all fields necessary 
+* ! checks to see if a user with that username already exists if it does return 401
+* ! sanatizes data to correctly go into database
+* ! If it cant create account it will send a 401
+* ! else it returns the new document
 * @param {Object} data
   @returns {Object} newData
 */
@@ -78,14 +78,14 @@ class AccountsService {
 
 
     /**
-* LOGIN
+* * LOGIN
 * Finds account associated with account
 * Checks to see if password they sent it the same as password in database
 * if check is true, a new access token is generated for user and put into DB
 * user is then sent back object containing their account information
 * if password is wrong user is sent a 401 
 * @param {Object} data
-  @returns {Object} updatedUserDoc
+* @returns {Object} updatedUserDoc
 */
     async login(data) {
         try {
@@ -112,7 +112,7 @@ class AccountsService {
     }
 
     /**
-       * LOGOUT
+       * * LOGOUT
        * find users account and removes accessToken
        @returns {StatusCode} 
        */
@@ -136,10 +136,11 @@ class AccountsService {
         }
     }
     /**
-           * checks if account id admin
-           * finds user by ID then deletes the user
-           @returns {StatusCode || Object} accountData
-           */
+        * * REMOVE USER FROM DATABASE
+        * ! checks if account id admin
+        * ! finds user by ID then deletes the user
+        * @returns {StatusCode || Object} accountData
+        */
 
     async removeUser(adminToken, userId) {
         try {
@@ -164,6 +165,13 @@ class AccountsService {
 
 
 
+
+    /** 
+  * * GET MY ACCOUNT
+  * @param {Token} authToken
+  * @returns users account document
+  */
+
     async getMyAccount(token) {
         try {
             // getting account by their access token
@@ -177,6 +185,12 @@ class AccountsService {
         }
     }
 
+
+    /** 
+  * * GET Users
+  * Brings back all document in accounts collection
+  */
+
     async getUsers() {
         try {
             const users = await dbContext.Account.find()
@@ -189,6 +203,18 @@ class AccountsService {
 
 
 
+
+
+    /** 
+  * * Update Account
+  * ! Deprecated
+  * ? SHOULD?
+  * TODO
+  * @param {String} token
+  * @param {ObjectId} id (accountId)
+  * @param {Object} data (information to be updated about the user)
+  */
+
     async updateAccount(token, id, data) {
         try {
             let pass;
@@ -199,7 +225,7 @@ class AccountsService {
             if (currentUser.privileges != 'admin' && currentUser.privileges != 'group-lead') {
                 return Promise.resolve(401)
             }
-            if(currentUser.privileges == 'group-lead' && currentUser.departmentId != data.departmentId) {
+            if (currentUser.privileges == 'group-lead' && currentUser.departmentId != data.departmentId) {
                 return Promise.resolve(401)
             } else {
                 const account = await dbContext.Account.findById(id)
@@ -238,7 +264,7 @@ class AccountsService {
                 const reVal = { returnOriginal: false }
                 const updatedAccount = await dbContext.Account.findByIdAndUpdate(filter, newData, reVal)
                 const us = await dbContext.Account.findById(id)
-                // await emailService.sendUpdatedCredentials(newData, token, data.password)
+                //TODO: IMPLEMENT EMAIL TO SEND TO USER ABOUT UPDATING ACCOUNT INFORMATION
                 return Promise.resolve(us)
             }
         } catch (error) {

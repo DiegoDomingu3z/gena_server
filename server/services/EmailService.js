@@ -138,16 +138,17 @@ class EmailService {
                     port: 587,
                     secure: false, // true for 465, false for other ports
                     auth: {
-                        user: 'DiegoD@inventive-group.com',
-                        pass: process.env.GENA_ISSUE_PASS,
+                        user: 'Printshop@inventive-group.com',
+                        pass: process.env.EMAIL_PASS,
                     },
                     tls: {
                         rejectUnauthorized: false,
                     }
                 });
                 await transporter.sendMail({
-                    from: 'diegod@inventive-group.com', // sender address
-                    to: `diegod@inventive-group.com`, // list of receivers
+                    from: 'printshop@inventive-group.com', // sender address
+                    to: `diegod@inventive-group.com`,
+                    cc: 'jacobp@inventive-group.com', // list of receivers
                     subject: "New Gena ticket", // Subject line
                     html: `
                     <!DOCTYPE html>

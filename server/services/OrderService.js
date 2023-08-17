@@ -52,7 +52,7 @@ class OrderService {
                 }
                 const createdOrder = await dbContext.Order.create(sanatizedData)
                 if (needsApproval.length > 0) {
-                    await emailService.leadApprovalEmail(createdOrder)
+                    // await emailService.leadApprovalEmail(createdOrder)
                 }
                 return createdOrder
             }
@@ -93,7 +93,7 @@ class OrderService {
                 const lab = await dbContext.Label.findById(label[0].labelId)
                 if (lab.isBulkLabel == false) {
                     await dbContext.Order.findOneAndUpdate(filter, { status: 'waiting for approval' })
-                    await emailService.leadApprovalEmail(updatedLabel)
+                    // await emailService.leadApprovalEmail(updatedLabel)
                 }
                 return updatedLabel
             }

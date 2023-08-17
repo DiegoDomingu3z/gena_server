@@ -14,7 +14,11 @@ export class CategoryController extends BaseController {
     }
 
 
-
+    /** 
+      * * GET ALL CATEGORIES
+      * ! No user authentication needed
+      * @returns {ARRAY} array of category objects
+      */
     async getAll(req, res, next) {
         try {
             const data = await categoryService.getAll()
@@ -29,6 +33,13 @@ export class CategoryController extends BaseController {
         }
     }
 
+
+    /** 
+      * * GET BY ID
+      * ! No user authentication needed
+      * @param {ObjectId} categoryId 
+      * @returns {Object} single category
+      */
     async getById(req, res, next) {
         try {
             const id = req.params.id
@@ -43,6 +54,14 @@ export class CategoryController extends BaseController {
             next()
         }
     }
+
+    /** 
+      * * Create Category
+      * ! User authentication required
+      * @param {Object}  dataSent (data for new category) 
+      * @param {String} AuthToken
+      * @returns {object} New Category
+      */
 
     async createCategory(req, res, next) {
         try {
@@ -64,6 +83,16 @@ export class CategoryController extends BaseController {
         }
     }
 
+
+    /** 
+      * * Update Category
+      * ! REQUIRES USER AUTH TOKEN TO RUN API SUCCESSFULLY
+      * @param {String} authToken
+      * @param {ObjectId} CategoryId
+      * @param {Object} newData
+      * @returns {Object} Updated Category Document
+      */
+
     async updateCategory(req, res, next) {
         try {
             const userToken = req.header("Authorization")
@@ -82,6 +111,15 @@ export class CategoryController extends BaseController {
             next()
         }
     }
+
+    /** 
+      * * DELETE CATEGORY
+      * ! REQUIRES USER AUTH TOKEN TO RUN API SUCCESSFULLY
+      * ! CASCADE DELETION
+      * @param {ObjectId} CategoryId
+      * @param {String} authToken
+      * @returns {Object} Deleted Category
+      */
 
     async removeCategory(req, res, next) {
         try {
