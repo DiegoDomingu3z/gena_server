@@ -24,7 +24,7 @@ export class AccountsController extends BaseController {
 
 
     /**
-* CREATE ACCOUNT
+* *CREATE ACCOUNT
 * Collects all data from body that user sent
 *  accountData is sent to accountService to handle logic
 * Handles all status to be sent back
@@ -52,7 +52,7 @@ export class AccountsController extends BaseController {
 
 
     /**
-* \LOGIN
+* * LOGIN
 * Collects all data from body that user sent
 * loginDATA is sent to accountService to handle logic
 * Handles all status to be sent back
@@ -81,7 +81,7 @@ export class AccountsController extends BaseController {
 
 
     /**
-* LOGOUT
+* *LOGOUT
 * Gets token from header and send to service
 @returns {StatusCode} accountData
 */
@@ -101,7 +101,7 @@ export class AccountsController extends BaseController {
     }
 
     /**
-   * LOGOUT
+   * * LOGOUT
    * Gets token from header and send to service
    * Gets id of user to be delete from params
    @returns {StatusCode} accountData
@@ -124,6 +124,15 @@ export class AccountsController extends BaseController {
         }
     }
 
+
+
+
+
+    /** 
+    * * GET MY ACCOUNT
+    * @param {String} authToken
+    * @returns {Object} Account 
+    */
     async getMyAccount(req, res, next) {
         try {
             const token = req.header('Authorization')
@@ -139,6 +148,11 @@ export class AccountsController extends BaseController {
         }
     }
 
+
+    /** 
+      * * GET USERS
+      * @returns {Array} bring documents of all Accounts Schema
+      */
     async getUsers(req, res, next) {
         try {
             const users = await accountsService.getUsers()
@@ -150,6 +164,13 @@ export class AccountsController extends BaseController {
     }
 
 
+
+    /** 
+  * * INTERNAL WEB DEPARTMENT/USER AUTOMATION
+  * ! API COULD BE BROKEN KEEP TESTING TO VERIFY
+  * ? SHOULD WE SET THIS API ON A CRON JOB FOR AUTOMATION?
+  */
+
     async userAutomation(req, res, next) {
         try {
             const depts = await internalUserAutomation.gatherDepartments()
@@ -160,6 +181,14 @@ export class AccountsController extends BaseController {
             next(error)
         }
     }
+
+
+    /** 
+  * * UPDATE ACCOUNT
+  * @param {STRING} authToken
+  * @param {ObjectId} accountsId
+  * @returns UPDATED ACCOUNT
+  */
 
     async updateAccount(req, res, next) {
         try {

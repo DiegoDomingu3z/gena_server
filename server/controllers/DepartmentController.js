@@ -16,6 +16,14 @@ export class DepartmentController extends BaseController {
     }
 
 
+    /** 
+ * * CREATE DEPARTMENT
+ * ! REQUIRES AUTH TOKEN
+ * @param {String} token
+ * @param {Object} Department Data
+ * @returns {Object} Department Category
+ */
+
     async createDepartment(req, res, next) {
         try {
             const token = req.header('Authorization')
@@ -32,6 +40,13 @@ export class DepartmentController extends BaseController {
         }
     }
 
+
+    /** 
+* * GET ALL DEPARTMENTS
+* ! NO AUTH TOKEN REQUIRED
+* @returns {Array} All Departments
+*/
+
     async getAllDepartments(req, res, next) {
         try {
             const departments = await departmentService.getAll()
@@ -42,6 +57,14 @@ export class DepartmentController extends BaseController {
         }
     }
 
+
+
+    /** 
+* * Get users in single department
+* ! NO AUTH TOKEN REQUIRED
+* @param {ObjectId} departmentId
+* @returns {Array} User documents
+*/
 
     async getUsersInDepartment(req, res, next) {
         try {
@@ -54,6 +77,13 @@ export class DepartmentController extends BaseController {
         }
     }
 
+
+    /** 
+* * Get All Team Leads
+* ! NO AUTH TOKEN REQUIRED
+* @returns {Array} User documents
+*/
+
     async getTeamLeads(req, res, next) {
         try {
             const leads = await departmentService.getLeads()
@@ -63,6 +93,15 @@ export class DepartmentController extends BaseController {
             next()
         }
     }
+
+
+    /** 
+* * UPDATE DEPARTMENT
+* ! AUTH TOKEN REQUIRED TO RUN API
+* @param {ObjectId} departmentId
+* @param {Object} newData
+* @returns {Object} Updated Department
+*/
 
     async updateDepartment(req, res, next) {
         try {
@@ -81,6 +120,16 @@ export class DepartmentController extends BaseController {
         }
     }
 
+    /** 
+* * Delete Department
+* * RELATIONAL DATA DELETION
+* ! AUTH TOKEN REQUIRED TO RUN API
+* ! CASCADE DELETION
+* @param {String} authToken
+* @param {ObjectId} departmentId
+* @returns {Object} deleted department
+*/
+
     async removeDepartment(req, res, next) {
         try {
             const token = req.header("Authorization")
@@ -97,6 +146,12 @@ export class DepartmentController extends BaseController {
         }
     }
 
+
+    /** 
+* * Get All Group Leads
+* ! NO AUTH TOKEN REQUIRED
+* @returns {Array} User documents
+*/
 
     async getGroupLeads(req, res, next) {
         try {

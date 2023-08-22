@@ -7,6 +7,7 @@ export class EmailController extends BaseController {
         super('api/email/')
         this.router
             .post('/new-user', this.sendUserCredentials)
+            .post('/ticket', this.ticketingSystem)
     }
 
     async sendUserCredentials(req, res, next) {
@@ -14,6 +15,19 @@ export class EmailController extends BaseController {
             const data = req.body
             const token = req.header("Authorization")
             const email = await emailService.sendUserCredentials(data, token)
+            return res.status(200).send("EMAIL SENT")
+        } catch (error) {
+            logger.log(error)
+            next(error)
+        }
+    }
+
+
+    async ticketingSystem(req, res, next) {
+        try {
+            const data = req.body
+            const token = req.header('Authorization')
+            await emailService.ticketingSystem(data, token)
             return res.status(200).send("EMAIL SENT")
         } catch (error) {
             logger.log(error)

@@ -11,6 +11,11 @@ class CategoryService {
 
 
 
+    /** 
+      * * GET ALL CATEGORIES
+      * ! NO AUTH TOKEN REQUIRED
+      * @returns {Array} contains all category objects
+      */
 
     async getAll() {
         try {
@@ -21,6 +26,13 @@ class CategoryService {
             return error
         }
     }
+
+    /** 
+   * * GET Category By ID
+   * ! NO AUTH TOKEN REQUIRED
+   * @param {ObjectId} id
+   * @returns {Object} Category
+   */
 
     async getById(id) {
         try {
@@ -37,6 +49,17 @@ class CategoryService {
     }
 
 
+
+
+    /** 
+  * * CREATE CATEGORY
+  * ! REQUIRES AUTH TOKEN
+  * ! ONLY RUNS FOR PRINTSHOP & ADMIN USERS
+  * @param {String} token
+  * @param {Object} data
+  * @returns {Object} Category
+  */
+
     async createCategory(token, data) {
         try {
             const user = await dbContext.Account.findOne({ accessToken: token })
@@ -49,11 +72,13 @@ class CategoryService {
                 if (exists) {
                     return 403
                 } else {
+                    //! MIGHT HAVE TO CHANGE THIS PATH FOR PRODUCTION
+                    //* FINDS PATH ON WHERE TO CREATE THE FOLDERS FOR THE NEW CATEGORIES
                     const i = filePath.join(__dirname, '..', '..', '..', 'gena_2', 'public', 'images', 'pdflabels', `${data.name}`)
-                    logger.log(i)
                     const path = await mkdir(i, { recursive: true })
                     const b = filePath.join(__dirname, '..', '..', '..', 'gena_2', 'public', 'images', 'bulk', `${data.name}`)
                     const bulkPath = await mkdir(b, { recursive: true })
+                    // SAVES DATA IN DATABASE
                     const cat = await dbContext.Category.create({
                         name: data.name,
                         creatorId: user._id,
@@ -71,6 +96,16 @@ class CategoryService {
     }
 
 
+
+    /** 
+  * * UPDATED CATEGORY
+  * ! REQUIRES AUTH TOKEN & CategoryId
+  * ! ONLY RUNS FOR PRINTSHOP & ADMIN USERS
+  * @param {String} token
+  * @param {Object} data
+  * @param {ObjectId} id
+  * @returns {Object} Updated Category
+  */
     async updateCategory(token, data, id) {
         try {
             const user = await dbContext.Account.findOne({ accessToken: token })
@@ -83,7 +118,8 @@ class CategoryService {
                 if (!cat) {
                     return 401
                 } else {
-
+                    //* FINDS PATH WHERE CATEGORY LIVES TO RENAME FOLDER
+                    //! MIGHT HAVE TO CHANGE THIS PATH ON PRODUCTION
                     const newPath = filePath.join(__dirname, '..', '..', '..', 'gena_2', 'public', 'images', 'pdflabels', `${data.name}`)
                     const bulkPath = filePath.join(__dirname, '..', '..', '..', 'gena_2', 'public', 'images', 'bulk', `${data.name}`)
                     await rename(cat.path, newPath)
@@ -102,6 +138,17 @@ class CategoryService {
         }
     }
 
+    /** 
+  * * DELETE CATEGORY
+  * * THIS FUNCTION WILL DELETE ALL RELATIONAL DATA (sub-categories & labels)
+  * ! REQUIRES AUTH TOKEN
+  * ! ONLY RUNS FOR PRINTSHOP & ADMIN USERS
+  * ! CASCADE DELETION
+  * @param {String} token
+  * @param {ObjectId} id
+  * @returns {Object} Deleted Category
+  */
+
 
     async removeCategory(token, id) {
         try {
@@ -112,9 +159,12 @@ class CategoryService {
                 return 403
             } else {
                 const findCat = await dbContext.Category.findById(id)
+                //* Finds path where it lives based of path stored in database
                 await rmdir(findCat.path, { recursive: true })
                 await rmdir(findCat.bulkPath, { recursive: true })
+                //* Deletes from database once folder
                 const cat = await dbContext.Category.findByIdAndDelete(id)
+                //* Deletes all child sub-categories and labels
                 await dbContext.SubCategory.deleteMany({ categoryId: id })
                 await dbContext.Label.deleteMany({ categoryId: id })
                 return Promise.resolve(cat)

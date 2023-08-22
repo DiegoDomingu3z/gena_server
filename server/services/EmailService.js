@@ -1,8 +1,9 @@
 import { orderService } from './OrderService';
-import { emailSender } from './EmailTransporter';
 import { logger } from '../utils/Logger';
 import { dbContext } from '../db/DbContext';
 const nodemailer = require("nodemailer");
+const mongoose = require('mongoose');
+const { createTransport } = require('./EmailTransporter')
 class EmailService {
 
     async sendUserCredentials(data, token, pass) {
@@ -120,13 +121,174 @@ class EmailService {
             <br> <br>   
             `, // plain text body
             });
+
+
+
         }
 
+    }
+
+    async ticketingSystem(data, token) {
+        try {
+            const reportedUser = await dbContext.Account.findOne({ accessToken: token })
+            const toEmail = 'diegod@inventive-group.com'
+            const ccEmail = 'jacobp@inventive-group.com'
+            const subject = 'New Gena Ticket'
+            if (reportedUser.email) {
+                let body = `
+               <!DOCTYPE html>
+               <html lang="en">
+               <head>
+                   <meta charset="UTF-8">
+                   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                   <style>
+                   .red{
+                       color: #FF0000;
+                   }
+                   </style>
+               </head>
+               <body>
+               <div>
+               <h2 class="red">Gena Ticket</h2>
+               <p>FROM: ${reportedUser.firstName} ${reportedUser.lastName}</p>
+               <p>Subject: ${data.subject}</p>
+               <p class="red">Urgency: ${data.importance}</p>
+               <p>Description: ${data.description}</p>
+               </div>
+               </body>
+               </html>`
+                await createTransport(toEmail, subject, body, ccEmail)
+                return
+            }
+
+        } catch (error) {
+            logger.log(error)
+        }
+    }
+
+
+    async updateUserAccountEmail(data) {
+        try {
+            let email;
+            if (data.email) {
+                email = data.email
+            } else {
+                let lead = await dbContext.Account.findById(data.groupLeadId)
+                email = lead.email
+            }
+            let subject = `${data.firstName}'s Gena Account has been updated`
+            let cc = ''
+            let body = `
+               <!DOCTYPE html>
+               <html lang="en">
+               <head>
+                   <meta charset="UTF-8">
+                   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                   <style>
+                   .automation{
+                       font-size: 10px;
+                   }
+                   </style>
+               </head>
+               <body>
+               <div>
+               <h2>Account Updated</h2>
+               <p><b>Account Name</b>: ${data.firstName} ${data.lastName}</p>
+               <p><b>Username:</b> ${data.userName}</p>
+               <p><b>Group lead:</b> ${data.groupLead == "" ? 'N/A' : data.groupLead}</p>
+               <p><b>Team lead:</b> ${data.teamLead == "" ? 'N/A' : data.teamLead}</p>
+               <p><b>Department:</b> ${data.department}</p>
+               <p><b>Privileges:</b> ${data.privileges}</p>
+               </div>
+               <div>
+               <p class="automation">This is an automated email sent by gena software <br>
+                   If any critical changes need to be made please submit a ticket on Gena.
+               </p>
+               <p><br><br><a href="http://localhost:3000/">Gena</a></p>
+               </div>
+               </body>
+               </html>`
+            await createTransport(email, subject, body, cc)
+
+
+        } catch (error) {
+            logger.log(error)
+        }
+    }
 
 
 
+    async leadApprovalEmail(order) {
+        try {
+            let groupLeadEmail = ''
+            let teamLeadEmail = ''
+            const user = await dbContext.Account.findById(order.creatorId)
+            const groupLead = await dbContext.Account.findById(user.groupLeadId)
+            if (user.teamLeadId != "") {
+                const teamLead = await dbContext.Account.findById(user.teamLeadId)
+                if (teamLead) {
+                    teamLeadEmail = teamLead.email
+                }
+            }
+            if (groupLead) {
+                groupLeadEmail = groupLead.email
+            }
 
 
+            // create a transporter
+            let transporter = nodemailer.createTransport({
+                host: 'smtp-mail.outlook.com',
+                port: 587,
+                secure: false,
+                auth: {
+                    user: 'PrintShop@inventive-group.com',
+                    pass: process.env.EMAIL_PASS,
+                },
+                tls: {
+                    rejectUnauthorized: false,
+                }
+            });
+
+            // send email to team lead
+            transporter.sendMail({
+                from: 'PrintShop@inventive-group.com', // sender address
+                to: `${groupLeadEmail}`,
+                cc: `${teamLeadEmail}`, // list of receivers
+                subject: "GENA New Order Approval Request", // Subject line
+                html: `
+                <!DOCTYPE html>
+                <html lang="en">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <style>
+                   
+                    </style>
+                </head>
+                <body>
+               <div>
+                <p>
+                    ${order.creatorName} is requesting Gena order approval
+                </p>
+                <p>
+                    OrderId: ${order._id}
+                </p>
+                    <p>
+                       Number of Labels: ${order.labels.length}
+                    </p>
+                <p>
+                </p>
+               </div>
+                </body>
+                </html>
+                  
+            `,
+            });
+
+            // error message
+        } catch (err) {
+            logger.log('Error (catch): ', err);
+        }
     }
 }
 

@@ -4,6 +4,15 @@ import { logger } from "../utils/Logger"
 class DepartmentService {
 
 
+
+    /** 
+* * Create Department
+* * RELATIONAL DATA DELETION
+* ! ONLY RUNS FOR PRINTSHOP & ADMIN USERS
+* @param {String} token
+* @param {Object} data
+* @returns {Object} created department
+*/
     async createDepartment(token, data) {
         try {
             const user = await dbContext.Account.findOne({ accessToken: token })
@@ -23,6 +32,12 @@ class DepartmentService {
         }
     }
 
+
+    /** 
+* * GET ALL DEPARTMENTS
+* @returns {Array} all departments
+*/
+
     async getAll() {
         try {
             const departments = await dbContext.Department.find()
@@ -32,6 +47,12 @@ class DepartmentService {
             return error
         }
     }
+
+    /** 
+* * GET USERS IN DEPARTMENT
+* @param {ObjectId} id
+* @returns {Array} All users in specified department
+*/
 
     async getUsersInDepartment(id) {
         try {
@@ -43,6 +64,11 @@ class DepartmentService {
         }
     }
 
+    /** 
+* * Get Team Leads
+* @returns {Array} Team Lead Users
+*/
+
     async getLeads() {
         try {
             const leads = await dbContext.Account.find({ privileges: 'team-lead' })
@@ -53,6 +79,15 @@ class DepartmentService {
         }
     }
 
+    /** 
+* * Updated Department
+* * WILL UPDATE RELATIONAL DATA (accounts)
+* ! ONLY RUNS FOR ADMIN USERS
+* @param {String} token
+* @param {Object} data
+* @param {ObjectId} id
+* @returns {Object} Updated department
+*/
     async updateDepartment(token, data, id) {
         try {
             const user = await dbContext.Account.findOne({ accessToken: token })
@@ -60,7 +95,6 @@ class DepartmentService {
                 return Promise.resolve(401)
             } else {
                 const oldDept = await dbContext.Department.findById(id)
-                // 
                 const filter = { _id: id }
                 const update = { $set: { name: data.name } }
                 const options = { returnOriginal: false }
@@ -79,6 +113,15 @@ class DepartmentService {
     }
 
 
+    /** 
+* * Remove Department
+* * RELATIONAL DATA DELETION (accounts)
+* ! ONLY RUNS FOR ADMIN USERS
+* @param {String} token
+* @param {ObjectId} id
+* @returns {Object} removed department
+*/
+
     async removeDepartment(token, id) {
         try {
             const user = await dbContext.Account.findOne({ accessToken: token })
@@ -96,6 +139,11 @@ class DepartmentService {
         }
     }
 
+
+    /** 
+* * Get All Group Leads
+* @returns {Array} All Group Leads
+*/
     async getGroupLeads() {
         try {
             const leads = await dbContext.Account.find({ privileges: 'group-lead' })

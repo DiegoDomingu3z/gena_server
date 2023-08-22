@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import { dbContext } from "../db/DbContext"
 import { logger } from "../utils/Logger";
+import { emailService } from "./EmailService";
 
 class OrderService {
 
@@ -36,6 +37,7 @@ class OrderService {
                 }
                 if (needsApproval.length > 0) {
                     status = 'waiting for approval'
+
                 } else { status = 'approved' }
                 if (user.privileges == 'group-lead') {
                     status = 'approved'
@@ -49,6 +51,10 @@ class OrderService {
                     qty: data.qty
                 }
                 const createdOrder = await dbContext.Order.create(sanatizedData)
+                if (needsApproval.length > 0) {
+                    // TODO UNCOMMENT TO SEND EMAILS OUT
+                    // await emailService.leadApprovalEmail(createdOrder)
+                }
                 return createdOrder
             }
         } catch (error) {
@@ -88,6 +94,8 @@ class OrderService {
                 const lab = await dbContext.Label.findById(label[0].labelId)
                 if (lab.isBulkLabel == false) {
                     await dbContext.Order.findOneAndUpdate(filter, { status: 'waiting for approval' })
+                    // TODO UNCOMMENT TO SEND EMAIL OUT TO LEAD ABOUT UPDATED LABEL
+                    // await emailService.leadApprovalEmail(updatedLabel)
                 }
                 return updatedLabel
             }

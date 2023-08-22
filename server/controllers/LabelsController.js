@@ -26,6 +26,17 @@ export class LabelsController extends BaseController {
     }
 
 
+
+    /** 
+* * Upload PDF
+* * RELATIONAL DATA DELETION
+* ! ONLY RUNS FOR PRINTSHOP & ADMIN USERS
+* @param {String} token
+* @param {ObjectId} CategoryId
+* @param {ObjectId} SubCategoryId
+* @param {Array_OF_Buffer} PDF_BUFFER
+* @returns {Object} created department
+*/
     async uploadPDF(req, res, next) {
         try {
             const catId = req.params.catId
@@ -46,7 +57,7 @@ export class LabelsController extends BaseController {
                     const catName = catData.name
                     const subCatName = subCatData.name
                     upload.array('pdf', 2)(req, res, async (err) => {
-                        logger.log(req.files, "THESE ARE THE FILES")
+                        logger.log(req.files, "LABELS WERE MADE")
                         if (err) {
                             return next(err);
                         } else {
@@ -59,6 +70,8 @@ export class LabelsController extends BaseController {
                                     path = filePath.join(__dirname, '..', '..', '..', 'gena_2', 'public', 'images', 'pdflabels', `${catName}`, `${subCatName}`, `${fileName}`)
 
                                 } else {
+                                    //* IF THERE was more than 1 file submitted the file2 means it s a bulk file
+                                    //* WILL STORE IN BULK PATH FOLDER
                                     path = filePath.join(__dirname, '..', '..', '..', 'gena_2', 'public', 'images', 'bulk', `${catName}`, `${subCatName}`, `${fileName}`)
                                 }
                                 const pdfBuffer = Buffer.from(fileToPrint.buffer);
@@ -77,7 +90,16 @@ export class LabelsController extends BaseController {
         }
     }
 
-
+    /** 
+  * * Create Label
+  * * THIS RUNS WITH API ABOVE (STORES DATA IN DATABASE)
+  * ! ONLY RUNS FOR PRINTSHOP & ADMIN USERS
+  * @param {String} token
+  * @param {ObjectId} CategoryId
+  * @param {ObjectId} SubCategoryId
+  * @param {Object} data
+  * @returns {Object} Created Label
+  */
 
     async createLabel(req, res, next) {
         try {
@@ -108,6 +130,15 @@ export class LabelsController extends BaseController {
 
 
 
+
+    /** 
+* * Update File
+* ! ONLY RUNS FOR PRINTSHOP & ADMIN USERS
+* ! CURRENTLY NOT BEING USED
+* @param {String} token
+* @param {ObjectId} labelId
+* @returns {Object} updated label
+*/
 
 
     async updateFile(req, res, next) {
@@ -155,6 +186,16 @@ export class LabelsController extends BaseController {
         }
     }
 
+    /** 
+* * Update file data
+* * RELATIONAL DATA DELETION
+* ! ONLY RUNS FOR PRINTSHOP & ADMIN USERS
+* ! CURRENTLY NOT BEING USED
+* @param {String} token
+* @param {Object} data
+* @returns {Object} updated label
+*/
+
 
     async updateFileData(req, res, next) {
         try {
@@ -178,6 +219,16 @@ export class LabelsController extends BaseController {
         }
     }
 
+
+    /** 
+* * Remove label
+* * RELATIONAL DATA DELETION
+* ! ONLY RUNS FOR PRINTSHOP & ADMIN USERS
+* ! NEEDS AUTH TOKEN TO RUN
+* @param {String} token
+* @param {ObjectId} labelId
+* @returns {Object} deleted label
+*/
 
     async removeLabel(req, res, next) {
         try {
@@ -204,6 +255,8 @@ export class LabelsController extends BaseController {
             next();
         }
     }
+
+
 
     async getLabelsInCats(req, res, next) {
         try {
