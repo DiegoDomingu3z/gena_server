@@ -264,7 +264,9 @@ class AccountsService {
                 const reVal = { returnOriginal: false }
                 const updatedAccount = await dbContext.Account.findByIdAndUpdate(filter, newData, reVal)
                 const us = await dbContext.Account.findById(id)
-                //TODO: IMPLEMENT EMAIL TO SEND TO USER ABOUT UPDATING ACCOUNT INFORMATION
+                //TODO: UNCOMMENT TO UPDATE USER
+                // await emailService.updateUserAccountEmail(us)
+                // await emailService.updateUserAccountEmail(us)
                 return Promise.resolve(us)
             }
         } catch (error) {

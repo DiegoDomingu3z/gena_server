@@ -162,7 +162,57 @@ class EmailService {
             }
 
         } catch (error) {
+            logger.log(error)
+        }
+    }
 
+
+    async updateUserAccountEmail(data) {
+        try {
+            let email;
+            if (data.email) {
+                email = data.email
+            } else {
+                let lead = await dbContext.Account.findById(data.groupLeadId)
+                email = lead.email
+            }
+            let subject = `${data.firstName}'s Gena Account has been updated`
+            let cc = ''
+            let body = `
+               <!DOCTYPE html>
+               <html lang="en">
+               <head>
+                   <meta charset="UTF-8">
+                   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                   <style>
+                   .automation{
+                       font-size: 10px;
+                   }
+                   </style>
+               </head>
+               <body>
+               <div>
+               <h2>Account Updated</h2>
+               <p><b>Account Name</b>: ${data.firstName} ${data.lastName}</p>
+               <p><b>Username:</b> ${data.userName}</p>
+               <p><b>Group lead:</b> ${data.groupLead == "" ? 'N/A' : data.groupLead}</p>
+               <p><b>Team lead:</b> ${data.teamLead == "" ? 'N/A' : data.teamLead}</p>
+               <p><b>Department:</b> ${data.department}</p>
+               <p><b>Privileges:</b> ${data.privileges}</p>
+               </div>
+               <div>
+               <p class="automation">This is an automated email sent by gena software <br>
+                   If any critical changes need to be made please submit a ticket on Gena.
+               </p>
+               <p><br><br><a href="http://localhost:3000/">Gena</a></p>
+               </div>
+               </body>
+               </html>`
+            await createTransport(email, subject, body, cc)
+
+
+        } catch (error) {
+            logger.log(error)
         }
     }
 

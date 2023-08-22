@@ -52,6 +52,7 @@ class OrderService {
                 }
                 const createdOrder = await dbContext.Order.create(sanatizedData)
                 if (needsApproval.length > 0) {
+                    // TODO UNCOMMENT TO SEND EMAILS OUT
                     // await emailService.leadApprovalEmail(createdOrder)
                 }
                 return createdOrder
@@ -93,6 +94,7 @@ class OrderService {
                 const lab = await dbContext.Label.findById(label[0].labelId)
                 if (lab.isBulkLabel == false) {
                     await dbContext.Order.findOneAndUpdate(filter, { status: 'waiting for approval' })
+                    // TODO UNCOMMENT TO SEND EMAIL OUT TO LEAD ABOUT UPDATED LABEL
                     // await emailService.leadApprovalEmail(updatedLabel)
                 }
                 return updatedLabel
