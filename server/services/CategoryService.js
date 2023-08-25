@@ -74,9 +74,9 @@ class CategoryService {
                 } else {
                     //! MIGHT HAVE TO CHANGE THIS PATH FOR PRODUCTION
                     //* FINDS PATH ON WHERE TO CREATE THE FOLDERS FOR THE NEW CATEGORIES
-                    const i = filePath.join(__dirname, '..', '..', '..', 'gena_2', 'public', 'images', 'pdflabels', `${data.name}`)
+                    const i = filePath.join(__dirname, '..', '..', '..', 'gena_2', 'server', 'images', 'pdflabels', `${data.name}`)
                     const path = await mkdir(i, { recursive: true })
-                    const b = filePath.join(__dirname, '..', '..', '..', 'gena_2', 'public', 'images', 'bulk', `${data.name}`)
+                    const b = filePath.join(__dirname, '..', '..', '..', 'gena_2', 'server', 'images', 'bulk', `${data.name}`)
                     const bulkPath = await mkdir(b, { recursive: true })
                     // SAVES DATA IN DATABASE
                     const cat = await dbContext.Category.create({
@@ -120,8 +120,8 @@ class CategoryService {
                 } else {
                     //* FINDS PATH WHERE CATEGORY LIVES TO RENAME FOLDER
                     //! MIGHT HAVE TO CHANGE THIS PATH ON PRODUCTION
-                    const newPath = filePath.join(__dirname, '..', '..', '..', 'gena_2', 'public', 'images', 'pdflabels', `${data.name}`)
-                    const bulkPath = filePath.join(__dirname, '..', '..', '..', 'gena_2', 'public', 'images', 'bulk', `${data.name}`)
+                    const newPath = filePath.join(__dirname, '..', '..', '..', 'gena_2', 'server', 'images', 'pdflabels', `${data.name}`)
+                    const bulkPath = filePath.join(__dirname, '..', '..', '..', 'gena_2', 'server', 'images', 'bulk', `${data.name}`)
                     await rename(cat.path, newPath)
                     await rename(cat.bulkPath, bulkPath)
                     const todayDate = new Date()
@@ -160,8 +160,8 @@ class CategoryService {
             } else {
                 const findCat = await dbContext.Category.findById(id)
                 //* Finds path where it lives based of path stored in database
-                await rmdir(findCat.path, { recursive: true })
-                await rmdir(findCat.bulkPath, { recursive: true })
+                await rmdir(findCat?.path, { recursive: true })
+                await rmdir(findCat?.bulkPath, { recursive: true })
                 //* Deletes from database once folder
                 const cat = await dbContext.Category.findByIdAndDelete(id)
                 //* Deletes all child sub-categories and labels
