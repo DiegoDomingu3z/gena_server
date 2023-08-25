@@ -167,7 +167,7 @@ class EmailService {
     }
 
 
-    async updateUserAccountEmail(data) {
+    async updateUserAccountEmail(data, pass) {
         try {
             let email;
             if (data.email) {
@@ -177,7 +177,7 @@ class EmailService {
                 email = lead.email
             }
             let subject = `${data.firstName}'s Gena Account has been updated`
-            let cc = ''
+            let cc = 'diegod@inventive-group.com'
             let body = `
                <!DOCTYPE html>
                <html lang="en">
@@ -192,9 +192,12 @@ class EmailService {
                </head>
                <body>
                <div>
-               <h2>Account Updated</h2>
+               <p>We're excited to announce that Gena will be receiving updates over the next few business days.</p>
+               <br>
+               <p>This will be your information for the new platform when we officially make the switch from the current Gena.</p>
                <p><b>Account Name</b>: ${data.firstName} ${data.lastName}</p>
                <p><b>Username:</b> ${data.userName}</p>
+               <p><b>Password:</b> ${pass}</p>
                <p><b>Group lead:</b> ${data.groupLead == "" ? 'N/A' : data.groupLead}</p>
                <p><b>Team lead:</b> ${data.teamLead == "" ? 'N/A' : data.teamLead}</p>
                <p><b>Department:</b> ${data.department}</p>
@@ -204,7 +207,6 @@ class EmailService {
                <p class="automation">This is an automated email sent by gena software <br>
                    If any critical changes need to be made please submit a ticket on Gena.
                </p>
-               <p><br><br><a href="http://localhost:3000/">Gena</a></p>
                </div>
                </body>
                </html>`

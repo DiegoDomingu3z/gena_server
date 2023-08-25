@@ -4,7 +4,7 @@ import { Startup } from './Startup'
 import { DbConnection } from './db/DbConfig'
 import { logger } from './utils/Logger'
 import { createServer } from 'http'
-
+const mongoose = require('mongoose');
 
 const app = express()
 const port = process.env.PORT || 3000
@@ -14,11 +14,10 @@ Startup.ConfigureGlobalMiddleware(app)
 Startup.ConfigureRoutes(app)
 
 
-process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 1;
+process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0;
 
 
 socketProvider.initialize(httpServer)
-
 
 DbConnection.connect()
 

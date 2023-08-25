@@ -28,14 +28,17 @@ class PrintShopService {
                 // variables we will use later
                 let pdfDoc;
                 let path;
+                let path2;
                 let finalPaths = []
                 const mainFolderPath = await this.createMainFolder(userOrder, order)
+                const printShopFolderPath = await this.createPrintShopMainFolder(userOrder, order)
                 // loop through all the labels in the order sent
                 for (let i = 0; i < order.labels.length; i++) {
                     const label = order.labels[i];
                     // find the established label that the user ordered
                     const findOrder = await dbContext.Label.findById(label.labelId)
                     const materialType = await this.createSubFolder(mainFolderPath, findOrder.materialTypeId)
+                    await this.createPrintShopSubFolder(printShopFolderPath, findOrder.materialTypeId)
                     // check to see if that label is used to print in bulk
                     if (findOrder.isBulkLabel == true) {
                         if (!findOrder.pdfBulkPath) {
@@ -103,16 +106,21 @@ class PrintShopService {
                             let pdfBytes = await pdfDoc.save()
                             if (l == 0) {
                                 path = `${mainFolderPath}/${materialType}/${findOrder.fileName}`
+                                path2 = `${printShopFolderPath}/${materialType}/${findOrder.fileName}`
                             } else {
                                 let newName = findOrder.fileName.slice(0, -4);
                                 path = `${mainFolderPath}/${materialType}/${newName}(${l}).pdf`
+                                path2 = `${printShopFolderPath}/${materialType}/${newName}(${l})`
                             }
                             if (fs.existsSync(path)) {
                                 let newName = findOrder.fileName.slice(0, -4);
                                 path = `${mainFolderPath}/${materialType}/${newName}(${l}).pdf`
+                                path2 = `${mainFolderPath}/${materialType}/${newName}(${l}).pdf`
                                 await fs.promises.writeFile(path, pdfBytes)
+                                await fs.promises.writeFile(path2, pdfBytes)
                             } else {
                                 await fs.promises.writeFile(path, pdfBytes)
+                                await fs.promises.writeFile(path2, pdfBytes)
                             }
                             finalPaths.push(path)
                         }
@@ -124,16 +132,21 @@ class PrintShopService {
                             // NOW CREATE FILE PATH TO WHERE TO SAVE THE PDF DOC
                             if (i == 0) {
                                 path = `${mainFolderPath}/${materialType}/${findOrder.fileName}`
+                                path2 = `${printShopFolderPath}/${materialType}/${findOrder.fileName}`
                             } else {
                                 let newName = findOrder.fileName.slice(0, -4);
                                 path = `${mainFolderPath}/${materialType}/${newName}(${i}).pdf`
+                                path2 = `${printShopFolderPath}/${materialType}/${newName}(${i}).pdf`
                             }
                             if (fs.existsSync(path)) {
                                 let newName = findOrder.fileName.slice(0, -4);
                                 path = `${mainFolderPath}/${materialType}/${newName}(${i}).pdf`
+                                path2 = `${printShopFolderPath}/${materialType}/${newName}(${i}).pdf`
                                 await fs.promises.writeFile(path, pdfBytes)
+                                await fs.promises.writeFile(path2, pdfBytes)
                             } else {
                                 await fs.promises.writeFile(path, pdfBytes)
+                                await fs.promises.writeFile(path2, pdfBytes)
                             }
                             finalPaths.push(path)
                         }
@@ -173,6 +186,12 @@ class PrintShopService {
         return Promise.resolve(mainFolderPath)
     }
 
+    async createPrintShopMainFolder(user, order){
+        const printShopPath = filePath.join(__dirname, '..', '..', '..', '..', '..', 'data', 'marketing', 'label-orders', `${user.department}-${user.firstName}-${user.lastName}-${order._id}`)
+        await mkdir (printShopPath, {recursive: true})
+        return Promise.resolve(printShopPath)
+    }
+
 
     async createSubFolder(mainFolderPath, materialId) {
         const material = await dbContext.Material.findById(materialId)
@@ -182,6 +201,13 @@ class PrintShopService {
         return subFolderPath
     }
 
+    async createPrintShopSubFolder(printShopPath, materialId){
+        const material = await dbContext.Material.findById(materialId)
+        const subFolderPath = material.name
+        const newPath = `${printShopPath}/${subFolderPath}`
+        mkdir(newPath, { recursive: true });
+        return subFolderPath
+    }
 
     async deliverOrder(id, token) {
         try {
@@ -221,21 +247,24 @@ class PrintShopService {
             } else {
                 logger.log('orderId not found in the string');
             }
+            let newString = substring.slice(46)
+            let finalStr = "\\\\web\\data\\marketing\\label-orders" + newString
+            logger.log(finalStr)
 
             if (process.platform === 'darwin') {
                 // macOS
-                command = `open "${substring}"`;
+                command = `open "${finalStr}"`;
             } else if (process.platform === 'win32') {
                 // Windows
-                command = `start "" "${substring}"`;
+                command = `start "" "${finalStr}"`;
             } else {
                 // Linux or other systems
-                command = `xdg-open "${substring}"`;
+                command = `xdg-open "${finalStr}"`;
             }
 
             exec(command, (error) => {
                 if (error) {
-                    console.error(`Failed to open folder in file manager: ${error.message}`);
+                    logger.error(`Failed to open folder in file manager: ${logger.message}`);
                 }
             });
             return
