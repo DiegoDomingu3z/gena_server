@@ -160,8 +160,8 @@ class CategoryService {
             } else {
                 const findCat = await dbContext.Category.findById(id)
                 //* Finds path where it lives based of path stored in database
-                await rmdir(findCat?.path, { recursive: true })
-                await rmdir(findCat?.bulkPath, { recursive: true })
+                await rmdir(findCat.path, { recursive: true })
+                await rmdir(findCat.bulkPath, { recursive: true })
                 //* Deletes from database once folder
                 const cat = await dbContext.Category.findByIdAndDelete(id)
                 //* Deletes all child sub-categories and labels

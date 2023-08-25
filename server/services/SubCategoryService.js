@@ -100,7 +100,7 @@ class SubCategoryService {
     async updateSubCat(token, id, data) {
         try {
             const user = await dbContext.Account.findOne({ accessToken: token })
-            if (user?.privileges != 'admin') {
+            if (user.privileges != 'admin') {
                 return Promise.resolve(401)
             } else {
                 const subCat = await dbContext.SubCategory.findById(id)
@@ -111,12 +111,12 @@ class SubCategoryService {
                     data['updatedOn'] = Date.now()
                     const updatedDoc = await dbContext.SubCategory.findByIdAndUpdate(id, data)
                     const doc = await dbContext.SubCategory.findById(id)
-                    const updatedLabel = await dbContext.Label.updateMany({ subCategoryId: id }, { $set: { subCategoryName: doc?.name } })
-                    const category = await dbContext.Category.findById(doc?.categoryId)
-                    const pathToUpdated = `${doc?.path}/${subCat.name}`
-                    const pathToUpdatedBulk = `${doc?.bulkPath}/${subCat.name}`
-                    const newPath = filePath.join(__dirname, '..', '..', '..', 'gena_2', 'server', 'images', 'pdflabels', `${category?.name}`, `${doc?.name}`)
-                    const newBulkPath = filePath.join(__dirname, '..', '..', '..', 'gena_2', 'server', 'images', 'bulk', `${category?.name}`, `${doc?.name}`)
+                    const updatedLabel = await dbContext.Label.updateMany({ subCategoryId: id }, { $set: { subCategoryName: doc.name } })
+                    const category = await dbContext.Category.findById(doc.categoryId)
+                    const pathToUpdated = `${doc.path}/${subCat.name}`
+                    const pathToUpdatedBulk = `${doc.bulkPath}/${subCat.name}`
+                    const newPath = filePath.join(__dirname, '..', '..', '..', 'gena_2', 'server', 'images', 'pdflabels', `${category.name}`, `${doc.name}`)
+                    const newBulkPath = filePath.join(__dirname, '..', '..', '..', 'gena_2', 'server', 'images', 'bulk', `${category.name}`, `${doc.name}`)
                     // const newPath = `../../../repos/inventive/gena_2/public/images/pdflabels/${category.name}/${doc.name}`
                     // const newBulkPath = `../../../repos/inventive/gena_2/public/images/bulk/${category.name}/${doc.name}`
                     await rename(pathToUpdated, newPath)
@@ -139,9 +139,9 @@ class SubCategoryService {
                 return Promise.resolve(403)
             } else {
                 const subCategory = await dbContext.SubCategory.findById(id)
-                const path = `${subCategory?.path}/${subCategory?.name}`
+                const path = `${subCategory.path}/${subCategory.name}`
                 await rmdir(path, { recursive: true })
-                await rmdir(subCategory?.bulkPath, { recursive: true })
+                await rmdir(subCategory.bulkPath, { recursive: true })
                 const removeSubCategory = await dbContext.SubCategory.findByIdAndDelete(id)
                 const removedLabels = await dbContext.Label.deleteMany({ subCategoryId: id })
                 return removeSubCategory
