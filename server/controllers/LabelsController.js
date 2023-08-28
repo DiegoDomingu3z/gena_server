@@ -1,5 +1,5 @@
 import { dbContext } from "../db/DbContext";
-import { labelsService } from "../services/labelsService";
+import { labelsService } from "../services/LabelsService";
 import BaseController from "../utils/BaseController";
 import { logger } from "../utils/Logger";
 import multer from 'multer';
@@ -67,12 +67,12 @@ export class LabelsController extends BaseController {
                                 const fileToPrint = files[i];
                                 const fileName = await fileToPrint.originalname;
                                 if (i == 0) {
-                                    path = filePath.join(__dirname, '..', '..', '..', 'gena_2', 'public', 'images', 'pdflabels', `${catName}`, `${subCatName}`, `${fileName}`)
+                                    path = filePath.join(__dirname, '..', '..', '..', 'gena_2', 'server', 'images', 'pdflabels', `${catName}`, `${subCatName}`, `${fileName}`)
 
                                 } else {
                                     //* IF THERE was more than 1 file submitted the file2 means it s a bulk file
                                     //* WILL STORE IN BULK PATH FOLDER
-                                    path = filePath.join(__dirname, '..', '..', '..', 'gena_2', 'public', 'images', 'bulk', `${catName}`, `${subCatName}`, `${fileName}`)
+                                    path = filePath.join(__dirname, '..', '..', '..', 'gena_2', 'server', 'images', 'bulk', `${catName}`, `${subCatName}`, `${fileName}`)
                                 }
                                 const pdfBuffer = Buffer.from(fileToPrint.buffer);
                                 await fs.promises.writeFile(path, pdfBuffer)

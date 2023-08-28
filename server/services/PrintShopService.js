@@ -180,7 +180,7 @@ class PrintShopService {
 
 
     async createMainFolder(user, order) {
-        const mainFolderPath = filePath.join(__dirname, '..', '..', '..', 'gena_2', 'public', 'images', 'prints', `${user.department}-${user.firstName}-${user.lastName}-${order._id}`)
+        const mainFolderPath = filePath.join(__dirname, '..', '..', '..', 'gena_2', 'server', 'images', 'prints', `${user.department}-${user.firstName}-${user.lastName}-${order._id}`)
         // const mainFolderPath = `../../../repos/inventive/gena_2/public/images/prints/${user.department}-${user.firstName}-${user.lastName}-${order._id}`
         await mkdir(mainFolderPath, { recursive: true });
         return Promise.resolve(mainFolderPath)

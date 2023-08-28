@@ -29,13 +29,13 @@ class LabelsService {
             let fields = [];
             let bulkPath
             if (data.isBulkLabel == true) {
-                bulkPath = filePath.join(__dirname, '..', '..', '..', 'gena_2', 'public', 'images', 'bulk')
+                bulkPath = filePath.join(__dirname, '..', '..', '..', 'gena_2', 'server', 'images', 'bulk')
             }
             if (data.isKanban == true) {
                 fields = data.fields
             }
 
-            const pdfPath = filePath.join(__dirname, '..', '..', '..', 'gena_2', 'public', 'images', 'pdflabels');
+            const pdfPath = filePath.join(__dirname, '..', '..', '..', 'gena_2', 'server', 'images', 'pdflabels');
 
             labelData = {
                 pdfPath: pdfPath,
@@ -105,10 +105,10 @@ class LabelsService {
         if (!label) {
             return Promise.resolve(404)
         } else {
-            let path = filePath.join(__dirname, '..', '..', '..', 'gena_2', 'public', 'images', 'pdflabels');
+            let path = filePath.join(__dirname, '..', '..', '..', 'gena_2', 'server', 'images', 'pdflabels');
             let bulkPath;
             if (label.isBulkLabel == true) {
-                bulkPath = filePath.join(__dirname, '..', '..', '..', 'gena_2', 'public', 'images', 'bulk', `${label.name}`)
+                bulkPath = filePath.join(__dirname, '..', '..', '..', 'gena_2', 'server', 'images', 'bulk', `${label.name}`)
                 await fs.unlink(bulkPath, (err) => {
                     if (err) {
                         console.error(err);
