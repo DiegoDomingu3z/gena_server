@@ -140,8 +140,10 @@ class SubCategoryService {
             } else {
                 const subCategory = await dbContext.SubCategory.findById(id)
                 const path = `${subCategory.path}/${subCategory.name}`
+                const bulkPath = `${subCategory.bulkPath}/${subCategory.name}`
+                logger.log(subCategory.bulkPath)
                 await rmdir(path, { recursive: true })
-                await rmdir(subCategory.bulkPath, { recursive: true })
+                await rmdir(bulkPath, { recursive: true })
                 const removeSubCategory = await dbContext.SubCategory.findByIdAndDelete(id)
                 const removedLabels = await dbContext.Label.deleteMany({ subCategoryId: id })
                 return removeSubCategory

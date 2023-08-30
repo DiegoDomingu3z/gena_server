@@ -174,8 +174,17 @@ class LabelsService {
                     }
                 ]
             });
-            return foundData;
-
+            const seenDocNums = {}
+            let searchData = foundData.filter(item => {
+                if (!seenDocNums.hasOwnProperty(item.docNum)) {
+                    seenDocNums[item.docNum] = true; // Mark this docNum as seen
+                    return true; // Include the item in the result
+                }
+                return false; // Skip duplicates
+            });
+            searchData = searchData.slice(0, 25)
+            logger.log(searchData)
+            return searchData
         } catch (error) {
             logger.log(error)
             return error

@@ -192,9 +192,9 @@ class EmailService {
                </head>
                <body>
                <div>
-               <p>We're excited to announce that Gena will be receiving updates over the next few business days.</p>
+               <p>We're excited to announce that Gena has recieved new updates.</p>
                <br>
-               <p>This will be your information for the new platform when we officially make the switch from the current Gena.</p>
+               <p>This will be your information for the new platform.</p>
                <p><b>Account Name</b>: ${data.firstName} ${data.lastName}</p>
                <p><b>Username:</b> ${data.userName}</p>
                <p><b>Password:</b> ${pass}</p>
