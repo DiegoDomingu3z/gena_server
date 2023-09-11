@@ -72,9 +72,14 @@ class PrintShopService {
                             try {
                                 const field = findOrder.fields[i];
                                 const inputName = field.name
-                                const fieldToFill = form.getTextField(inputName)
-                                logger.log(label.textToPut[i].text)
-                                fieldToFill.setText(label.textToPut[i].text)
+                                if (inputName == 'AREA') {
+                                    const dropdown = form.getDropdown(inputName)
+                                    dropdown.select(label.textToPut[i].text)
+                                } else {
+                                    const fieldToFill = form.getTextField(inputName)
+                                    logger.log(label.textToPut[i].text)
+                                    fieldToFill.setText(label.textToPut[i].text)
+                                }
                             } catch (error) {
                                 const field = findOrder.fields[i];
                                 const inputName = field.name
