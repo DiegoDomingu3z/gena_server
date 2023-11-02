@@ -16,7 +16,7 @@ export const labelSchema = new Schema({
     unitPack: { type: Number, required: true, default: 1 },
     docNum: { type: String, required: true },
     creatorId: { type: ObjectId, ref: 'Account', required: true },
-    createdOn: { type: Date, required: true, default: Date.now() },
+    createdOn: { type: Date, required: true, default: Date.now },
     updatedOn: { type: Date, required: true, default: Date.now() },
     categoryId: { type: ObjectId, ref: 'Category', required: true },
     categoryName: { type: String, required: true },

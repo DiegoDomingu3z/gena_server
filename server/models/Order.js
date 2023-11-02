@@ -9,7 +9,7 @@ export const OrderSchema = new Schema({
     creatorId: { type: ObjectId, ref: 'Account', required: true },
     creatorName: { type: String, required: true },
     notes: { type: String },
-    createdOn: { type: Date, required: true, default: Date.now() },
+    createdOn: { type: Date, required: true, default: Date.now },
     updatedOn: { type: Date, required: true, default: Date.now() },
     status: { type: String, enum: ['waiting for approval', 'approved', 'processing', 'delivered', 'declined'] },
     labels: [
@@ -23,7 +23,7 @@ export const OrderSchema = new Schema({
 
                 }
             ],
-            createdOn: { type: Date, default: Date.now() },
+            createdOn: { type: Date, default: Date.now },
             updatedOn: { type: Date, default: Date.now() }
         }
     ],

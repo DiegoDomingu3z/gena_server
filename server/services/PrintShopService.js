@@ -109,18 +109,18 @@ class PrintShopService {
                             const reCurr = { returnOriginal: false }
                             const updatedLabel = await dbContext.Label.findByIdAndUpdate(filterId, serialData, reCurr)
                             let pdfBytes = await pdfDoc.save()
-                            if (l == 0) {
+                            if (i == 0) {
                                 path = `${mainFolderPath}/${materialType}/${findOrder.fileName}`
                                 path2 = `${printShopFolderPath}/${materialType}/${findOrder.fileName}`
                             } else {
                                 let newName = findOrder.fileName.slice(0, -4);
-                                path = `${mainFolderPath}/${materialType}/${newName}(${l}).pdf`
-                                path2 = `${printShopFolderPath}/${materialType}/${newName}(${l})`
+                                path = `${mainFolderPath}/${materialType}/${newName}(${i}).pdf`
+                                path2 = `${printShopFolderPath}/${materialType}/${newName}(${i})`
                             }
                             if (fs.existsSync(path)) {
                                 let newName = findOrder.fileName.slice(0, -4);
-                                path = `${mainFolderPath}/${materialType}/${newName}(${l}).pdf`
-                                path2 = `${mainFolderPath}/${materialType}/${newName}(${l}).pdf`
+                                path = `${mainFolderPath}/${materialType}/${newName}(${i}).pdf`
+                                path2 = `${mainFolderPath}/${materialType}/${newName}(${i}).pdf`
                                 await fs.promises.writeFile(path, pdfBytes)
                                 await fs.promises.writeFile(path2, pdfBytes)
                             } else {
@@ -132,7 +132,7 @@ class PrintShopService {
                     }
                     if (findOrder.isSerial != true) {
                         // loop to print quantity the user requests
-                        for (let i = 0; i < label.qty; i++) {
+                        for (let s = 0; s < label.qty; s++) {
                             const pdfBytes = await pdfDoc.save()
                             // NOW CREATE FILE PATH TO WHERE TO SAVE THE PDF DOC
                             if (i == 0) {
@@ -178,7 +178,7 @@ class PrintShopService {
     }
 
     async updateOrder(id) {
-        const data = await dbContext.Order.findByIdAndUpdate(id, { status: 'processing', updatedOn: Date.now() })
+        const data = await dbContext.Order.findByIdAndUpdate(id, { status: 'processing', updatedOn: Date.now })
         logger.log(data)
         return Promise.resolve(data)
     }
@@ -227,7 +227,7 @@ class PrintShopService {
                 if (!order) {
                     return Promise.resolve(400)
                 } else {
-                    const updatedOrder = await dbContext.Order.findByIdAndUpdate(id, { status: 'delivered', updatedOn: Date.now() })
+                    const updatedOrder = await dbContext.Order.findByIdAndUpdate(id, { status: 'delivered', updatedOn: Date.now })
                     return Promise.resolve(200)
                 }
             }
