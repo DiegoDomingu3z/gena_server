@@ -131,8 +131,8 @@ class EmailService {
     async ticketingSystem(data, token) {
         try {
             const reportedUser = await dbContext.Account.findOne({ accessToken: token })
-            const toEmail = 'diegod@inventive-group.com'
-            const ccEmail = 'jacobp@inventive-group.com'
+            const toEmail = 'marketing@inventive-group.com'
+            const ccEmail = 'jacobp@inventive-group.com, diegod@inventive-group.com'
             const subject = 'New Gena Ticket'
             if (reportedUser.email) {
                 let body = `

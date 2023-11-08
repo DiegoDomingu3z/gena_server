@@ -10,7 +10,7 @@ export const OrderSchema = new Schema({
     creatorName: { type: String, required: true },
     notes: { type: String },
     createdOn: { type: Date, required: true, default: Date.now },
-    updatedOn: { type: Date, required: true, default: Date.now() },
+    updatedOn: { type: Date, required: true, default: Date.now },
     status: { type: String, enum: ['waiting for approval', 'approved', 'processing', 'delivered', 'declined'] },
     labels: [
         {
@@ -24,7 +24,7 @@ export const OrderSchema = new Schema({
                 }
             ],
             createdOn: { type: Date, default: Date.now },
-            updatedOn: { type: Date, default: Date.now() }
+            updatedOn: { type: Date, default: Date.now }
         }
     ],
     finalOrderPaths: { type: Array }

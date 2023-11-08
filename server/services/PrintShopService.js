@@ -109,18 +109,18 @@ class PrintShopService {
                             const reCurr = { returnOriginal: false }
                             const updatedLabel = await dbContext.Label.findByIdAndUpdate(filterId, serialData, reCurr)
                             let pdfBytes = await pdfDoc.save()
-                            if (i == 0) {
-                                path = `${mainFolderPath}/${materialType}/${findOrder.fileName}`
-                                path2 = `${printShopFolderPath}/${materialType}/${findOrder.fileName}`
+                            if (l == 0) {
+                                path = `${mainFolderPath}/${materialType}/${findOrder.fileName}-(${i})(${l}).pdf`
+                                path2 = `${printShopFolderPath}/${materialType}/${findOrder.fileName}-(${i})(${l}).pdf`
                             } else {
                                 let newName = findOrder.fileName.slice(0, -4);
-                                path = `${mainFolderPath}/${materialType}/${newName}(${i}).pdf`
-                                path2 = `${printShopFolderPath}/${materialType}/${newName}(${i})`
+                                path = `${mainFolderPath}/${materialType}/${newName}-(${i})(${l}).pdf`
+                                path2 = `${printShopFolderPath}/${materialType}/${newName}-(${i})(${l}).pdf`
                             }
                             if (fs.existsSync(path)) {
                                 let newName = findOrder.fileName.slice(0, -4);
-                                path = `${mainFolderPath}/${materialType}/${newName}(${i}).pdf`
-                                path2 = `${mainFolderPath}/${materialType}/${newName}(${i}).pdf`
+                                path = `${mainFolderPath}/${materialType}/${newName}-(${i})(${l}).pdf`
+                                path2 = `${mainFolderPath}/${materialType}/${newName}-(${i})(${l}).pdf`
                                 await fs.promises.writeFile(path, pdfBytes)
                                 await fs.promises.writeFile(path2, pdfBytes)
                             } else {
@@ -135,18 +135,18 @@ class PrintShopService {
                         for (let s = 0; s < label.qty; s++) {
                             const pdfBytes = await pdfDoc.save()
                             // NOW CREATE FILE PATH TO WHERE TO SAVE THE PDF DOC
-                            if (i == 0) {
-                                path = `${mainFolderPath}/${materialType}/${findOrder.fileName}`
-                                path2 = `${printShopFolderPath}/${materialType}/${findOrder.fileName}`
+                            if (s == 0) {
+                                path = `${mainFolderPath}/${materialType}/${findOrder.fileName}-(${i})(${s}).pdf`
+                                path2 = `${printShopFolderPath}/${materialType}/${findOrder.fileName}-(${i})(${s}).pdf`
                             } else {
                                 let newName = findOrder.fileName.slice(0, -4);
-                                path = `${mainFolderPath}/${materialType}/${newName}(${i}).pdf`
-                                path2 = `${printShopFolderPath}/${materialType}/${newName}(${i}).pdf`
+                                path = `${mainFolderPath}/${materialType}/${newName}-(${i})(${s}).pdf`
+                                path2 = `${printShopFolderPath}/${materialType}/${newName}-(${i})(${s}).pdf`
                             }
                             if (fs.existsSync(path)) {
                                 let newName = findOrder.fileName.slice(0, -4);
-                                path = `${mainFolderPath}/${materialType}/${newName}(${i}).pdf`
-                                path2 = `${printShopFolderPath}/${materialType}/${newName}(${i}).pdf`
+                                path = `${mainFolderPath}/${materialType}/${newName}-(${i})(${s}).pdf`
+                                path2 = `${printShopFolderPath}/${materialType}/${newName}-(${i})(${s}).pdf`
                                 await fs.promises.writeFile(path, pdfBytes)
                                 await fs.promises.writeFile(path2, pdfBytes)
                             } else {
@@ -178,7 +178,7 @@ class PrintShopService {
     }
 
     async updateOrder(id) {
-        const data = await dbContext.Order.findByIdAndUpdate(id, { status: 'processing', updatedOn: Date.now })
+        const data = await dbContext.Order.findByIdAndUpdate(id, { status: 'processing', updatedOn: Date.now() })
         logger.log(data)
         return Promise.resolve(data)
     }
