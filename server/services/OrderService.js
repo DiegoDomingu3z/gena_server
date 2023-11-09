@@ -4,63 +4,67 @@ import { logger } from "../utils/Logger";
 import { emailService } from "./EmailService";
 
 class OrderService {
-  async createOrder(token, data) {
-    try {
-      const user = await this.checkIfUserExists(token);
-      let needsApproval = [];
-      let status;
-      if (user == 400) {
-        return Promise.resolve(400);
-      } else {
-        for (let i = 0; i < data.labels.length; i++) {
-          const label = data.labels[i];
-          const check = await dbContext.Label.findById(label.labelId);
-          if (check.isBulkLabel != true) {
-            needsApproval.push(label._id);
-          }
-          if (check.fields.length > 1) {
-            if (check.fields[0].type == "checkbox") {
-              let sanitizedText = [];
-              for (let i = 0; i < check.fields.length; i++) {
-                const obj = label.textToPut[i];
-                if (obj.text == "") {
-                  obj.text = "false";
+
+
+    async createOrder(token, data) {
+        try {
+            const user = await this.checkIfUserExists(token)
+            let needsApproval = []
+            let status;
+            if (user == 400) {
+                return Promise.resolve(400)
+            } else {
+                for (let i = 0; i < data.labels.length; i++) {
+                    const label = data.labels[i];
+                    const check = await dbContext.Label.findById(label.labelId)
+                    if (check.isBulkLabel != true) {
+                        needsApproval.push(label._id)
+                    }
+                    if (check.fields.length > 1) {
+
+                        if (check.fields[0].type == 'checkbox') {
+                            let sanitizedText = []
+                            for (let i = 0; i < check.fields.length; i++) {
+                                const obj = label.textToPut[i];
+                                if (obj.text == '') {
+                                    obj.text = 'false'
+                                }
+                                sanitizedText.push(obj)
+                            }
+                            data.labels[i].textToPut = sanitizedText
+                        }
+                    }
                 }
-                sanitizedText.push(obj);
-              }
-              data.labels[i].textToPut = sanitizedText;
+                if (needsApproval.length > 0) {
+                    status = 'waiting for approval'
+
+                } else { status = 'approved' }
+                if (user.privileges == 'group-lead') {
+                    status = 'approved'
+                }
+                const sanatizedData = {
+                    creatorId: user._id,
+                    creatorName: `${user.firstName} ${user.lastName}`,
+                    notes: data.notes,
+                    status: status,
+                    labels: data.labels,
+                    qty: data.qty
+                }
+                const createdOrder = await dbContext.Order.create(sanatizedData)
+                if (needsApproval.length > 0) {
+                    // TODO UNCOMMENT TO SEND EMAILS OUT
+                    await emailService.leadApprovalEmail(createdOrder)
+                }
+                emailService.successFullOrderSubmission(createdOrder)
+                return createdOrder
             }
-          }
+        } catch (error) {
+            emailService.unSuccessFullOrderSubmission(data, token)
+            logger.error(error)
+            return error
         }
-        if (needsApproval.length > 0) {
-          status = "waiting for approval";
-        } else {
-          status = "approved";
-        }
-        if (user.privileges == "group-lead") {
-          status = "approved";
-        }
-        const sanatizedData = {
-          creatorId: user._id,
-          creatorName: `${user.firstName} ${user.lastName}`,
-          notes: data.notes,
-          status: status,
-          labels: data.labels,
-          qty: data.qty,
-        };
-        const createdOrder = await dbContext.Order.create(sanatizedData);
-        if (needsApproval.length > 0) {
-          // TODO UNCOMMENT TO SEND EMAILS OUT
-          await emailService.leadApprovalEmail(createdOrder);
-        }
-        emailService.successFullOrderSubmission(createdOrder);
-        return createdOrder;
-      }
-    } catch (error) {
-      logger.error(error);
-      return error;
+
     }
-  }
 
   async updateLabel(token, orderId, data, labelId) {
     try {
@@ -690,32 +694,38 @@ class OrderService {
     }
   }
 
-  async updateToPickup(id, token) {
-    try {
-      const user = await dbContext.Account.findOne({ accessToken: token });
-      if (user.privileges != "printshop") {
-        return Promise.resolve(401);
-      } else {
-        const order = await dbContext.Order.findById(id);
-        if (!order) {
-          return Promise.resolve(400);
-        } else {
-          const filter = { _id: id };
-          const update = { $set: { status: "ready for pickup" } };
-          const options = { returnOriginal: false };
-          const updatedOrder = await dbContext.Order.findOneAndUpdate(
-            filter,
-            update,
-            options
-          );
-          return updatedOrder;
+    async updateToPickup(id, token) {
+        try {
+            const user = await dbContext.Account.findOne({ accessToken: token })
+            if (user.privileges != 'printshop') {
+                return Promise.resolve(401)
+            } else {
+                const order = await dbContext.Order.findById(id)
+                if (!order) { return Promise.resolve(400) } else {
+                    const filter = { _id: id }
+                    const update = { $set: { status: 'ready for pickup' } }
+                    const options = { returnOriginal: false }
+                    const updatedOrder = await dbContext.Order.findOneAndUpdate(filter, update, options)
+                    await emailService.readyForPickupEmail(updatedOrder)
+                    return updatedOrder;
+                }
+            }
+        } catch (error) {
+            logger.log(error)
+            return error
         }
-      }
-    } catch (error) {
-      logger.log(error);
-      return error;
     }
-  }
+
+
+
+
+
+
+
 }
+
+
+
+
 
 export const orderService = new OrderService();
