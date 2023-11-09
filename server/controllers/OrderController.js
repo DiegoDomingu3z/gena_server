@@ -23,7 +23,7 @@ export class OrderController extends BaseController {
       .put("/:id/approve", this.approveOrder)
       .put("/:id/decline", this.declineOrder)
       .put("/:id/deliver", this.printShopDeliverOrder)
-      .get("/ready-for-pickup", this.updateToPickup)
+      .put('/:id/update-to-pickup', this.updateToPickup)
       .post("/group-lead/labels/to-see", this.getGroupLeadOrderApproveLabels)
       .put("/:id/picked-up-by", this.pickedUpBy);
   }
