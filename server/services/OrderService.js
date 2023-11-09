@@ -224,7 +224,6 @@ class OrderService {
             arr.push(doubleArr);
           }
 
-          logger.log(orders, "THIS IS");
           return { orders, arr };
         }
       }
@@ -276,7 +275,6 @@ class OrderService {
             arr.push(doubleArr);
           }
 
-          logger.log(orders, "THIS IS");
           return { orders, arr };
         }
       }
@@ -328,7 +326,6 @@ class OrderService {
             arr.push(doubleArr);
           }
 
-          logger.log(orders, "THIS IS");
           return { orders, arr };
         }
       }
@@ -686,7 +683,6 @@ class OrderService {
         arr.push(doubleArr);
       }
 
-      logger.log(orders, "THIS IS");
       return { orders, arr };
     }
   }

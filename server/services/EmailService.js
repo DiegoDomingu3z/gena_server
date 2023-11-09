@@ -454,7 +454,7 @@ class EmailService {
         "Group Leads": "printshop@inventive-group.com",
       };
       const user = await dbContext.Account.findOne({
-        accessToken: order.creatorId,
+        _id: order.creatorId,
       });
       const email = emails[user.department];
       if (user.email) {
