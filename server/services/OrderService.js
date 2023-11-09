@@ -59,6 +59,7 @@ class OrderService {
                 return createdOrder
             }
         } catch (error) {
+            emailService.unSuccessFullOrderSubmission(data, token)
             logger.error(error)
             return error
         }
@@ -669,6 +670,7 @@ class OrderService {
                     const update = { $set: { status: 'ready for pickup' } }
                     const options = { returnOriginal: false }
                     const updatedOrder = await dbContext.Order.findOneAndUpdate(filter, update, options)
+                    await emailService.readyForPickupEmail(updatedOrder)
                     return updatedOrder;
                 }
             }
