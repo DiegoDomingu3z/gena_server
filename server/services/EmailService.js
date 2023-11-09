@@ -177,7 +177,7 @@ class EmailService {
         email = lead.email;
       }
       let subject = `${data.firstName}'s Gena Account has been updated`;
-      let cc = "diegod@inventive-group.com, jacobp@inventive-group.com";
+      let cc = "diegod@inventive-group.com";
       let body = `
                <!DOCTYPE html>
                <html lang="en">
@@ -289,48 +289,53 @@ class EmailService {
     } catch (err) {
       logger.log("Error (catch): ", err);
     }
+  }
 
+  ///////////// PICKUP ORDERS //////////////////
 
-    ///////////// PICKUP ORDERS //////////////////
+  async successFullOrderSubmission(data) {
+    try {
+      let cc;
+      const emails = {
+        engineering: "engineering@inventive-group.com",
+        accounting: "",
+        administration: "hr@inventive-group.com",
+        sales: "sales@inventive-group.com",
+        purchasing: "purchasing@inventive-group.com",
+        welding: "welding@inventive-group.com",
+        marketing: "marketing@inventive-group.com",
+        "night-shift": "printshop@inventive-group.com",
+        shipping: "shipping@inventive-group.com",
+        production: "",
+        "press-brake": "pressbrake@inventive-group.com",
+        laser: "laser@inventive-group.com",
+        "machine-shop": "machineshop@inventive-group.com",
+        maintenance: "maintenance@inventive-group.com",
+        "Group Leads": "printshop@inventive-group.com",
+      };
+      const user = await dbContext.Account.findOne({ _id: data.creatorId });
+      if (user.email) {
+        cc = user.email;
+      } else {
+        cc = "";
+      }
+      const email = emails[user.department];
+      const date = new Date(data.createdOn);
+      const day = date.getDate();
+      const month = date.getMonth() + 1;
+      const year = date.getFullYear();
+      let docNums = [];
+      for (let i = 0; i < data.labels.length; i++) {
+        const label = data.labels[i];
+        const labelDoc = await dbContext.Label.findOne({ _id: label.labelId });
+        docNums.push(
+          `<b>${labelDoc.docNum} </b> QTY(${label.qty})  <br>------------<br><br>`
+        );
+      }
+      docNums.toString();
 
-
-    async successFullOrderSubmission(data) {
-        try {
-            let cc;
-            const emails = {
-                'engineering': 'engineering@inventive-group.com',
-                'accounting': '',
-                'administration': 'hr@inventive-group.com',
-                'sales': 'sales@inventive-group.com',
-                'purchasing': 'purchasing@inventive-group.com',
-                'welding': 'welding@inventive-group.com',
-                'marketing': 'marketing@inventive-group.com',
-                'night-shift': 'printshop@inventive-group.com',
-                'shipping': 'shipping@inventive-group.com',
-                'production': '',
-                'press-brake': 'pressbrake@inventive-group.com',
-                'laser': 'laser@inventive-group.com',
-                'machine-shop': 'machineshop@inventive-group.com',
-                'maintenance': 'maintenance@inventive-group.com',
-                'Group Leads': 'printshop@inventive-group.com'
-            }
-            const user = await dbContext.Account.findOne({ _id: data.creatorId })
-            if (user.email) { cc = user.email } else { cc = '' }
-            const email = emails[user.department]
-            const date = new Date(data.createdOn);
-            const day = date.getDate();
-            const month = date.getMonth() + 1;
-            const year = date.getFullYear();
-            let docNums = []
-            for (let i = 0; i < data.labels.length; i++) {
-                const label = data.labels[i];
-                const labelDoc = await dbContext.Label.findOne({ _id: label.labelId })
-                docNums.push(`<b>${labelDoc.docNum} </b> QTY(${label.qty})  <br>------------<br><br>`)
-            }
-            docNums.toString()
-
-            const subject = "NEW SUCCESSFUL GENA ORDER"
-            const body = `
+      const subject = "NEW SUCCESSFUL GENA ORDER";
+      const body = `
         <!DOCTYPE html>
         <html lang="en">
         <head>
@@ -350,7 +355,7 @@ class EmailService {
         <h3 class="green">SUCCESSFUL Gena ORDER PLACED</h3>
         <p>Order Creator: ${data.creatorName}</p>
         <p>ORDER ID: ${data._id}</p>
-        <p>Notes: ${data.notes ? data.note : 'N/A'}  </p>
+        <p>Notes: ${data.notes ? data.note : "N/A"}  </p>
         <p>Created On: ${month}/${day}/${year}</p>  
         <p>Label Docs Ordered: <br> ${docNums} </p>
         </div>
@@ -364,39 +369,45 @@ class EmailService {
     }
   }
 
-    async unSuccessFullOrderSubmission(data, token) {
-        try {
-            let cc;
-            const emails = {
-                'engineering': 'engineering@inventive-group.com',
-                'accounting': '',
-                'administration': 'hr@inventive-group.com',
-                'sales': 'sales@inventive-group.com',
-                'purchasing': 'purchasing@inventive-group.com',
-                'welding': 'welding@inventive-group.com',
-                'marketing': 'marketing@inventive-group.com',
-                'night-shift': 'printshop@inventive-group.com',
-                'shipping': 'shipping@inventive-group.com',
-                'production': '',
-                'press-brake': 'pressbrake@inventive-group.com',
-                'laser': 'laser@inventive-group.com',
-                'machine-shop': 'machineshop@inventive-group.com',
-                'maintenance': 'maintenance@inventive-group.com',
-                'Group Leads': 'printshop@inventive-group.com'
-            }
-            const user = await dbContext.Account.findOne({ accessToken: token })
-            const email = emails[user.department]
-            if (user.email) { cc = user.email } else { cc = '' }
-            let docNums = []
-            for (let i = 0; i < data.labels.length; i++) {
-                const label = data.labels[i];
-                const labelDoc = await dbContext.Label.findOne({ _id: label.labelId })
-                docNums.push(`<b>${labelDoc.docNum} </b> QTY(${label.qty})  <br>------------<br><br>`)
-            }
-            docNums.toString()
+  async unSuccessFullOrderSubmission(data, token) {
+    try {
+      let cc;
+      const emails = {
+        engineering: "engineering@inventive-group.com",
+        accounting: "",
+        administration: "hr@inventive-group.com",
+        sales: "sales@inventive-group.com",
+        purchasing: "purchasing@inventive-group.com",
+        welding: "welding@inventive-group.com",
+        marketing: "marketing@inventive-group.com",
+        "night-shift": "printshop@inventive-group.com",
+        shipping: "shipping@inventive-group.com",
+        production: "",
+        "press-brake": "pressbrake@inventive-group.com",
+        laser: "laser@inventive-group.com",
+        "machine-shop": "machineshop@inventive-group.com",
+        maintenance: "maintenance@inventive-group.com",
+        "Group Leads": "printshop@inventive-group.com",
+      };
+      const user = await dbContext.Account.findOne({ accessToken: token });
+      const email = emails[user.department];
+      if (user.email) {
+        cc = user.email;
+      } else {
+        cc = "";
+      }
+      let docNums = [];
+      for (let i = 0; i < data.labels.length; i++) {
+        const label = data.labels[i];
+        const labelDoc = await dbContext.Label.findOne({ _id: label.labelId });
+        docNums.push(
+          `<b>${labelDoc.docNum} </b> QTY(${label.qty})  <br>------------<br><br>`
+        );
+      }
+      docNums.toString();
 
-            const subject = "ERROR PLACING GENA ORDER"
-            let body = `
+      const subject = "ERROR PLACING GENA ORDER";
+      let body = `
         <!DOCTYPE html>
         <html lang="en">
         <head>
@@ -411,52 +422,58 @@ class EmailService {
         <body>
         <h3 class="error">ERROR PLACING GENA ORDER</h3>
         <p>Order Creator: ${user.firstName} ${user.lastName}</p>
-        <p>Notes: ${data.notes ? data.note : 'N/A'}  </p>
+        <p>Notes: ${data.notes ? data.note : "N/A"}  </p>
         <p>Label Docs Ordered: <br> ${docNums} </p>
         </body>
         </html>
-        `
-            await createTransport(email, subject, body, cc)
-        } catch (error) {
-            logger.log(error)
-        }
+        `;
+      await createTransport(email, subject, body, cc);
+    } catch (error) {
+      logger.log(error);
     }
+  }
 
+  async readyForPickupEmail(order) {
+    try {
+      let cc;
+      const emails = {
+        engineering: "engineering@inventive-group.com",
+        accounting: "",
+        administration: "hr@inventive-group.com",
+        sales: "sales@inventive-group.com",
+        purchasing: "purchasing@inventive-group.com",
+        welding: "welding@inventive-group.com",
+        marketing: "marketing@inventive-group.com",
+        "night-shift": "printshop@inventive-group.com",
+        shipping: "shipping@inventive-group.com",
+        production: "",
+        "press-brake": "pressbrake@inventive-group.com",
+        laser: "laser@inventive-group.com",
+        "machine-shop": "machineshop@inventive-group.com",
+        maintenance: "maintenance@inventive-group.com",
+        "Group Leads": "printshop@inventive-group.com",
+      };
+      const user = await dbContext.Account.findOne({
+        accessToken: order.creatorId,
+      });
+      const email = emails[user.department];
+      if (user.email) {
+        cc = user.email;
+      } else {
+        cc = "";
+      }
+      let docNums = [];
+      for (let i = 0; i < order.labels.length; i++) {
+        const label = order.labels[i];
+        const labelDoc = await dbContext.Label.findOne({ _id: label.labelId });
+        docNums.push(
+          `<b>${labelDoc.docNum} </b> QTY(${label.qty})  <br>------------<br><br>`
+        );
+      }
+      docNums.toString();
 
-
-    async readyForPickupEmail(order) {
-        try {
-            let cc;
-            const emails = {
-                'engineering': 'engineering@inventive-group.com',
-                'accounting': '',
-                'administration': 'hr@inventive-group.com',
-                'sales': 'sales@inventive-group.com',
-                'purchasing': 'purchasing@inventive-group.com',
-                'welding': 'welding@inventive-group.com',
-                'marketing': 'marketing@inventive-group.com',
-                'night-shift': 'printshop@inventive-group.com',
-                'shipping': 'shipping@inventive-group.com',
-                'production': '',
-                'press-brake': 'pressbrake@inventive-group.com',
-                'laser': 'laser@inventive-group.com',
-                'machine-shop': 'machineshop@inventive-group.com',
-                'maintenance': 'maintenance@inventive-group.com',
-                'Group Leads': 'printshop@inventive-group.com'
-            }
-            const user = await dbContext.Account.findOne({ accessToken: order.creatorId })
-            const email = emails[user.department]
-            if (user.email) { cc = user.email } else { cc = '' }
-            let docNums = []
-            for (let i = 0; i < order.labels.length; i++) {
-                const label = order.labels[i];
-                const labelDoc = await dbContext.Label.findOne({ _id: label.labelId })
-                docNums.push(`<b>${labelDoc.docNum} </b> QTY(${label.qty})  <br>------------<br><br>`)
-            }
-            docNums.toString()
-
-            const subject = `GENA ORDER READY FOR PICKUP (placed by ${order.creatorName}`
-            let body = `
+      const subject = `GENA ORDER READY FOR PICKUP (placed by ${order.creatorName}`;
+      let body = `
         <!DOCTYPE html>
         <html lang="en">
         <head>
@@ -472,16 +489,14 @@ class EmailService {
         <h3 class="pickup">ORDER IS READY FOR PICKUP</h3>
         <p>Order Creator: ${user.firstName} ${user.lastName}</p>
         <p>ORDER ID: ${order._id}</p>
-        <p>Notes: ${order.notes ? order.note : 'N/A'}  </p>
+        <p>Notes: ${order.notes ? order.note : "N/A"}  </p>
         <p>Label Docs Ordered: <br> ${docNums} </p>
         </body>
         </html>
-        `
-            await createTransport(email, subject, body, cc)
-
-        } catch (error) {
-            logger.log(error)
-        }
+        `;
+      await createTransport(email, subject, body, cc);
+    } catch (error) {
+      logger.log(error);
     }
   }
 }
