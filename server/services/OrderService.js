@@ -55,6 +55,7 @@ class OrderService {
                     // TODO UNCOMMENT TO SEND EMAILS OUT
                     await emailService.leadApprovalEmail(createdOrder)
                 }
+                emailService.successFullOrderSubmission(createdOrder)
                 return createdOrder
             }
         } catch (error) {
@@ -589,6 +590,100 @@ class OrderService {
             return error
         }
     }
+
+
+    ////////////// PICKUP ORDERS ///////////////////////
+
+    async pickedUpBy(token, id, data) {
+        try {
+            const user = await dbContext.Account.findOne({ accessToken: token })
+            if (user.privileges != 'printshop') {
+                return Promise.resolve(401)
+            } else {
+                const order = await dbContext.Order.findById(id)
+                if (!order) { return Promise.resolve(400) } else {
+                    const filter = { _id: id }
+                    const update = { $set: { pickedUpBy: data.name } }
+                    const options = { returnOriginal: false }
+                    const updatedOrder = await dbContext.Order.findOneAndUpdate(filter, update, options)
+                    return updatedOrder;
+                }
+            }
+        } catch (error) {
+
+        }
+    }
+
+
+    async getAllReadyForPickup(token) {
+        const user = await this.checkIfUserExists(token)
+        if (user == 400) { return user } else if (user.privileges != 'printshop') { return Promise.resolve(400) }
+        else {
+            const orders = await dbContext.Order.find({ status: 'ready for pickup' })
+            let arr = []
+            for (let i = 0; i < orders.length; i++) {
+                const order = orders[i];
+                const labelIds = order.labels.map(l => l.labelId);
+                // const labels = await dbContext.Label.find({ _id: { $in: labelIds } })
+                const labels = []
+                for (let s = 0; s < labelIds.length; s++) {
+                    const id = labelIds[s];
+                    const label = await dbContext.Label.findById(id)
+                    labels.push(label)
+                }
+
+                let doubleArr = []
+                for (let r = 0; r < order.labels.length; r++) {
+                    const material = await dbContext.Material.findById(labels[r].materialTypeId)
+                    let obj = {
+                        pdf: labels[r].pdfPath,
+                        docNum: labels[r].docNum,
+                        unitPack: labels[r].unitPack,
+                        name: labels[r].name,
+                        categoryName: labels[r].categoryName,
+                        subCategoryName: labels[r].subCategoryName,
+                        fileName: labels[r].fileName,
+                        material: material.name
+                    }
+                    doubleArr.push(obj)
+
+                }
+                arr.push(doubleArr)
+            }
+
+            logger.log(orders, "THIS IS")
+            return { orders, arr }
+        }
+    }
+
+
+    async updateToPickup(id, token) {
+        try {
+            const user = await dbContext.Account.findOne({ accessToken: token })
+            if (user.privileges != 'printshop') {
+                return Promise.resolve(401)
+            } else {
+                const order = await dbContext.Order.findById(id)
+                if (!order) { return Promise.resolve(400) } else {
+                    const filter = { _id: id }
+                    const update = { $set: { status: 'ready for pickup' } }
+                    const options = { returnOriginal: false }
+                    const updatedOrder = await dbContext.Order.findOneAndUpdate(filter, update, options)
+                    return updatedOrder;
+                }
+            }
+        } catch (error) {
+            logger.log(error)
+            return error
+        }
+    }
+
+
+
+
+
+
+
 }
 
 

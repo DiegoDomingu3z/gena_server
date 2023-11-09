@@ -16,14 +16,72 @@ export class OrderController extends BaseController {
             .get('/all-orders', this.getAllOrders) //done
             .get('/print-shop/approved-by-lead', this.getApprovedOrders) //done
             .get('/print-shop/processing-orders', this.getProcessingOrders) // done
+            .get('/ready-for-pickup', this.getReadyForPickupOrders)
             .get('/delivered-orders', this.getDeliveredOrders) // done
             .get('/cart', this.getCart)
             .get('/need-to-approve', this.getApprovalOrder)
             .put('/:id/approve', this.approveOrder)
             .put('/:id/decline', this.declineOrder)
             .put('/:id/deliver', this.printShopDeliverOrder)
+            .get('/ready-for-pickup', this.updateToPickup)
             .post('/group-lead/labels/to-see', this.getGroupLeadOrderApproveLabels)
+            .put('/:id/picked-up-by', this.pickedUpBy)
     }
+
+
+
+
+    ///////////// FOR PICKUP ORDERS ////////////////
+
+    async getReadyForPickupOrders(req, res, next) {
+        try {
+            const token = req.header("Authorization")
+            const orders = await orderService.getAllReadyForPickup(token)
+            if (orders == 400) {
+                res.status(400).send('FORBIDDEN')
+            } else {
+                res.status(200).send(orders)
+            }
+        } catch (error) {
+            logger.log(error)
+            next(error)
+        }
+
+    }
+
+
+    async pickedUpBy(req, res, next) {
+        try {
+            const token = req.header("Authorization")
+            const id = req.params.id
+            const data = req.body
+            const updatedOrder = await orderService.pickedUpBy(token, id, data)
+            res.status(200).send(updatedOrder)
+        } catch (error) {
+            logger.error(error)
+            next()
+        }
+    }
+
+    async updateToPickup(req, res, next) {
+        try {
+            const orderId = req.params.id
+            const token = req.header("Authorization")
+            const updatedOrder = await orderService.updateToPickup(orderId, token)
+            if (updatedOrder == 401) {
+                res.status(401).send("FORBIDDEN")
+            } else if (updatedOrder == 400) {
+                res.status(400).send("ORDER NOT FOUND")
+            } else {
+                res.status(200).send(updatedOrder)
+            }
+        } catch (error) {
+            logger.error(error)
+            next()
+        }
+    }
+
+    //////////////////////////////////////////////////////////////
 
 
 

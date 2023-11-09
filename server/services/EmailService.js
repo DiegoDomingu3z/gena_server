@@ -291,6 +291,95 @@ class EmailService {
             logger.log('Error (catch): ', err);
         }
     }
+
+
+    ///////////// PICKUP ORDERS //////////////////
+
+
+    async successFullOrderSubmission(data) {
+        try {
+            const email = 'diegod@inventive-group.com'
+            const cc = ''
+            const date = new Date(data.createdOn);
+            const day = date.getDate();
+            const month = date.getMonth() + 1;
+            const year = date.getFullYear();
+            const labelIds = []
+            const docNums = []
+            for (let i = 0; i < data.labels.length; i++) {
+                const label = data.labels[i];
+                const labelDoc = await dbContext.Label.findOne({ _id: label.labelId })
+                docNums.push(`<b>${labelDoc.docNum} </b> QTY(${label.qty})  <br>------------<br><br>`)
+            }
+            docNums.toString()
+            let labelObjs = JSON.stringify(data.labels)
+
+            const subject = "NEW SUCCESSFUL GENA ORDER"
+            const body = `
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <style>
+            .automation{
+                font-size: 10px;
+            }
+            .green{
+                color: #00FF00;
+            }
+            </style>
+        </head>
+        <body>
+        <div>
+        <h3 class="green">SUCCESSFUL Gena ORDER PLACED</h3>
+        <p>Order Creator: ${data.creatorName}</p>
+        <p>Notes: ${data.notes ? data.note : 'N/A'}  </p>
+        <p>Created On: ${month}/${day}/${year}</p>  
+        <p>Label Docs Ordered: <br> ${docNums} </p>
+        </div>
+        
+        </body>
+        </html>
+        `
+            await createTransport(email, subject, body, cc)
+        } catch (error) {
+            logger.log(error)
+        }
+    }
+
+    async unSuccessFullOrderSubmission() {
+        try {
+
+
+            let body = `
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <style>
+            .automation{
+                font-size: 10px;
+            }
+            </style>
+        </head>
+        <body>
+        
+        </body>
+        </html>
+        `
+        } catch (error) {
+            logger.log(error)
+        }
+    }
+
+
+
+
+
+
+
 }
 
 
