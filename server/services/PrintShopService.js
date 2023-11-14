@@ -1,13 +1,13 @@
-import { dbContext } from "../db/DbContext"
-import { logger } from "../utils/Logger"
-import { PDFDocument } from 'pdf-lib'
-const fs = require('fs');
-const filePath = require('path');
-const util = require('util');
+import { dbContext } from "../db/DbContext";
+import { logger } from "../utils/Logger";
+import { PDFDocument } from "pdf-lib";
+const fs = require("fs");
+const filePath = require("path");
+const util = require("util");
 const mkdir = util.promisify(fs.mkdir);
-const { readFile, writeFile } = require('fs/promises');
-const { exec } = require('child_process');
-const path = require('path');
+const { readFile, writeFile } = require("fs/promises");
+const { exec } = require("child_process");
+const path = require("path");
 class PrintShopService {
     async createFilesToPrint(token, id) {
         try {
@@ -74,11 +74,7 @@ class PrintShopService {
                                 const inputName = field.name
                                 if (inputName == 'AREA') {
                                     const dropdown = form.getDropdown(inputName)
-                                    if (label.textToPut[i].text == "") {
-                                        continue
-                                    } else {
-                                        dropdown.select(label.textToPut[i].text)
-                                    }
+                                    dropdown.select(label.textToPut[i].text)
                                 } else {
                                     const fieldToFill = form.getTextField(inputName)
                                     logger.log(label.textToPut[i].text)
@@ -172,122 +168,143 @@ class PrintShopService {
         }
     }
 
-    async sleepFileCreation(ms) {
-        return new Promise(resolve => setTimeout(resolve, ms));
-    }
+  async sleepFileCreation(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
 
-    async addFinalPath(arr, id) {
-        await dbContext.Order.findByIdAndUpdate(id, { finalOrderPaths: arr })
-        return
-    }
+  async addFinalPath(arr, id) {
+    await dbContext.Order.findByIdAndUpdate(id, { finalOrderPaths: arr });
+    return;
+  }
 
-    async updateOrder(id) {
-        const data = await dbContext.Order.findByIdAndUpdate(id, { status: 'processing', updatedOn: Date.now() })
-        logger.log(data)
-        return Promise.resolve(data)
-    }
+  async updateOrder(id) {
+    const data = await dbContext.Order.findByIdAndUpdate(id, {
+      status: "processing",
+      updatedOn: Date.now(),
+    });
+    logger.log(data);
+    return Promise.resolve(data);
+  }
 
+  async createMainFolder(user, order) {
+    const mainFolderPath = filePath.join(
+      __dirname,
+      "..",
+      "..",
+      "..",
+      "gena_2",
+      "server",
+      "images",
+      "prints",
+      `${user.department}-${user.firstName}-${user.lastName}-${order._id}`
+    );
+    // const mainFolderPath = `../../../repos/inventive/gena_2/public/images/prints/${user.department}-${user.firstName}-${user.lastName}-${order._id}`
+    await mkdir(mainFolderPath, { recursive: true });
+    return Promise.resolve(mainFolderPath);
+  }
 
-    async createMainFolder(user, order) {
-        const mainFolderPath = filePath.join(__dirname, '..', '..', '..', 'gena_2', 'server', 'images', 'prints', `${user.department}-${user.firstName}-${user.lastName}-${order._id}`)
-        // const mainFolderPath = `../../../repos/inventive/gena_2/public/images/prints/${user.department}-${user.firstName}-${user.lastName}-${order._id}`
-        await mkdir(mainFolderPath, { recursive: true });
-        return Promise.resolve(mainFolderPath)
-    }
+  async createPrintShopMainFolder(user, order) {
+    const printShopPath = filePath.join(
+      __dirname,
+      "..",
+      "..",
+      "..",
+      "..",
+      "..",
+      "data",
+      "marketing",
+      "label-orders",
+      `${user.department}-${user.firstName}-${user.lastName}-${order._id}`
+    );
+    await mkdir(printShopPath, { recursive: true });
+    return Promise.resolve(printShopPath);
+  }
 
-    async createPrintShopMainFolder(user, order){
-        const printShopPath = filePath.join(__dirname, '..', '..', '..', '..', '..', 'data', 'marketing', 'label-orders', `${user.department}-${user.firstName}-${user.lastName}-${order._id}`)
-        await mkdir (printShopPath, {recursive: true})
-        return Promise.resolve(printShopPath)
-    }
+  async createSubFolder(mainFolderPath, materialId) {
+    const material = await dbContext.Material.findById(materialId);
+    const subFolderPath = material.name;
+    const newPath = `${mainFolderPath}/${subFolderPath}`;
+    mkdir(newPath, { recursive: true });
+    return subFolderPath;
+  }
 
+  async createPrintShopSubFolder(printShopPath, materialId) {
+    const material = await dbContext.Material.findById(materialId);
+    const subFolderPath = material.name;
+    const newPath = `${printShopPath}/${subFolderPath}`;
+    mkdir(newPath, { recursive: true });
+    return subFolderPath;
+  }
 
-    async createSubFolder(mainFolderPath, materialId) {
-        const material = await dbContext.Material.findById(materialId)
-        const subFolderPath = material.name
-        const newPath = `${mainFolderPath}/${subFolderPath}`
-        mkdir(newPath, { recursive: true });
-        return subFolderPath
-    }
-
-    async createPrintShopSubFolder(printShopPath, materialId){
-        const material = await dbContext.Material.findById(materialId)
-        const subFolderPath = material.name
-        const newPath = `${printShopPath}/${subFolderPath}`
-        mkdir(newPath, { recursive: true });
-        return subFolderPath
-    }
-
-    async deliverOrder(id, token) {
-        try {
-            const user = await dbContext.Account.findOne({ accessToken: token })
-            logger.log(user[0])
-            if (!user) {
-                return Promise.resolve(400)
-            } else if (user.privileges != 'printshop') {
-                return Promise.resolve(403)
-            } else {
-                const order = await dbContext.Order.findById(id)
-                if (!order) {
-                    return Promise.resolve(400)
-                } else {
-                    const updatedOrder = await dbContext.Order.findByIdAndUpdate(id, { status: 'delivered', updatedOn: Date.now })
-                    return Promise.resolve(200)
-                }
-            }
-        } catch (error) {
-            logger.error(error)
-            return error
+  async deliverOrder(id, token) {
+    try {
+      const user = await dbContext.Account.findOne({ accessToken: token });
+      logger.log(user[0]);
+      if (!user) {
+        return Promise.resolve(400);
+      } else if (user.privileges != "printshop") {
+        return Promise.resolve(403);
+      } else {
+        const order = await dbContext.Order.findById(id);
+        if (!order) {
+          return Promise.resolve(400);
+        } else {
+          const updatedOrder = await dbContext.Order.findByIdAndUpdate(id, {
+            status: "delivered",
+            updatedOn: Date.now,
+          });
+          return Promise.resolve(200);
         }
+      }
+    } catch (error) {
+      logger.error(error);
+      return error;
     }
+  }
 
-    async openFileManger(id) {
-        try {
-            const order = await dbContext.Order.findById(id)
-            let command;
-            let substring
-            const orderId = id
-            const filePath = order.finalOrderPaths[0]
-            const index = filePath.indexOf(id);
+  async openFileManger(id) {
+    try {
+      const order = await dbContext.Order.findById(id);
+      let command;
+      let substring;
+      const orderId = id;
+      const filePath = order.finalOrderPaths[0];
+      const index = filePath.indexOf(id);
 
-            if (index !== -1) {
-                substring = filePath.substring(0, index + orderId.length);
-                console.log(substring);
-            } else {
-                logger.log('orderId not found in the string');
-            }
-            let newString = substring.slice(46)
-            let finalStr = "\\\\web\\data\\marketing\\label-orders" + newString
-            logger.log(finalStr)
+      if (index !== -1) {
+        substring = filePath.substring(0, index + orderId.length);
+        console.log(substring);
+      } else {
+        logger.log("orderId not found in the string");
+      }
+      let newString = substring.slice(46);
+      let finalStr = "\\\\web\\data\\marketing\\label-orders" + newString;
+      logger.log(finalStr);
 
-            if (process.platform === 'darwin') {
-                // macOS
-                command = `open "${finalStr}"`;
-            } else if (process.platform === 'win32') {
-                // Windows
-                command = `start "" "${finalStr}"`;
-            } else {
-                // Linux or other systems
-                command = `xdg-open "${finalStr}"`;
-            }
+      if (process.platform === "darwin") {
+        // macOS
+        command = `open "${finalStr}"`;
+      } else if (process.platform === "win32") {
+        // Windows
+        command = `start "" "${finalStr}"`;
+      } else {
+        // Linux or other systems
+        command = `xdg-open "${finalStr}"`;
+      }
 
-            exec(command, (error) => {
-                if (error) {
-                    logger.error(`Failed to open folder in file manager: ${logger.message}`);
-                }
-            });
-            return
-        } catch (error) {
-            logger.error(error)
-            return error
+      exec(command, (error) => {
+        if (error) {
+          logger.error(
+            `Failed to open folder in file manager: ${logger.message}`
+          );
         }
-
+      });
+      return;
+    } catch (error) {
+      logger.error(error);
+      return error;
     }
-
-
-
-
+  }
 }
 
-
-export const printShopService = new PrintShopService()
+export const printShopService = new PrintShopService();
