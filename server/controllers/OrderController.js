@@ -1,6 +1,7 @@
 import { orderService } from "../services/OrderService";
 import BaseController from "../utils/BaseController";
 import { logger } from "../utils/Logger";
+import { socketProvider } from "../SocketProvider";
 
 export class OrderController extends BaseController {
     constructor() {
@@ -240,6 +241,7 @@ export class OrderController extends BaseController {
             const id = req.params.id
             const orderApproved = await orderService.approveOrder(token, id)
             res.status(200).send(orderApproved)
+            socketProvider.io.emit('approvedOrder', {status: 200})
         } catch (error) {
             logger.error(error)
             next()

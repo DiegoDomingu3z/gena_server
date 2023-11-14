@@ -74,7 +74,11 @@ class PrintShopService {
                                 const inputName = field.name
                                 if (inputName == 'AREA') {
                                     const dropdown = form.getDropdown(inputName)
-                                    dropdown.select(label.textToPut[i].text)
+                                    if (label.textToPut[i].text == "") {
+                                        continue
+                                    } else {
+                                        dropdown.select(label.textToPut[i].text)
+                                    }
                                 } else {
                                     const fieldToFill = form.getTextField(inputName)
                                     logger.log(label.textToPut[i].text)
