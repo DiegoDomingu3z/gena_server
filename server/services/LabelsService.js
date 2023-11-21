@@ -74,10 +74,9 @@ class LabelsService {
         labelData.currentSerialNum = data.currentSerialNum;
       }
       const newDoc = await dbContext.Label.create(labelData);
-      logger.log(newDoc);
       return newDoc;
     } catch (error) {
-      logger.log(error);
+      logger.error(error);
       return error;
     }
   }
@@ -90,7 +89,7 @@ class LabelsService {
       });
       return updatedLabel;
     } catch (error) {
-      logger.log(error);
+      logger.error(error);
       return error;
     }
   }
@@ -105,7 +104,7 @@ class LabelsService {
       const newLabel = await dbContext.Label.findById(id);
       return newLabel;
     } catch (error) {
-      logger.log(error);
+      logger.error(error);
       return error;
     }
   }
@@ -172,7 +171,7 @@ class LabelsService {
       });
       return Promise.resolve(data);
     } catch (error) {
-      logger.log(error);
+      logger.error(error);
       return error;
     }
   }
@@ -214,10 +213,9 @@ class LabelsService {
         return false; // Skip duplicates
       });
       searchData = searchData.slice(0, 25);
-      logger.log(searchData);
       return searchData;
     } catch (error) {
-      logger.log(error);
+      logger.error(error);
       return error;
     }
   }
@@ -248,10 +246,9 @@ class LabelsService {
         };
         labelObjects.push(obj);
       }
-      logger.log(labelObjects);
       return labelObjects;
     } catch (error) {
-      logger.log(error);
+      logger.error(error);
       return error;
     }
   }

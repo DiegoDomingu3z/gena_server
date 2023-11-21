@@ -71,7 +71,6 @@ class OrderService {
         return Promise.resolve(401);
       } else {
         const label = order.labels.filter((l) => l._id == labelId);
-        logger.log(label[0]);
         let objectWithQty = data.find((obj) => "qty" in obj);
         let qty;
         if (objectWithQty.qty != label[0].qty) {
@@ -109,7 +108,7 @@ class OrderService {
         return updatedLabel;
       }
     } catch (error) {
-      logger.log(error);
+      logger.error(error);
       return error;
     }
   }
@@ -136,8 +135,6 @@ class OrderService {
           let doubleArr = [];
           for (let r = 0; r < order.labels.length; r++) {
             const lbl = order.labels[r];
-            logger.log(lbl);
-            logger.log(labels[r]);
             let obj = {
               maxOrderQty: labels[r].maxOrderQty,
               pdf: labels[r].pdfPath,
@@ -398,9 +395,6 @@ class OrderService {
                 const orderToSend = await dbContext.Order.findById(orderId);
                 if (orderToSend.labels.length === 0) {
                   await dbContext.Order.findByIdAndDelete(orderId);
-                  logger.log(
-                    "DELETE ORDER SINCE THERE ARE NO MORE LABELS IN THE ORDER"
-                  );
                   return Promise.resolve(200);
                 } else {
                   return orderToSend;
@@ -443,8 +437,6 @@ class OrderService {
           }
           if (needsApproval.length > 0) {
             status = "waiting for approval";
-            // EMAIL LEAD
-            logger.log("EMAIL FOR LEAD WOULD BE SENT");
           } else {
             status = order.status;
           }

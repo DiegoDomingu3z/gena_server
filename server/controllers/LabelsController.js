@@ -52,7 +52,6 @@ export class LabelsController extends BaseController {
         creator.privileges != "admin" &&
         creator.privileges != "printshop"
       ) {
-        logger.log("NO PERMISSION");
         res.status(403).send("YOU DO NOT HAVE PERMISSION TO DO THIS");
       } else {
         if (!catData || !subCatData) {
@@ -61,7 +60,6 @@ export class LabelsController extends BaseController {
           const catName = catData.name;
           const subCatName = subCatData.name;
           upload.array("pdf", 2)(req, res, async (err) => {
-            logger.log(req.files, "LABELS WERE MADE");
             if (err) {
               return next(err);
             } else {
@@ -103,9 +101,7 @@ export class LabelsController extends BaseController {
                 }
                 const pdfBuffer = Buffer.from(fileToPrint.buffer);
                 await fs.promises.writeFile(path, pdfBuffer);
-                logger.log("FILE MADE");
               }
-
               res.status(200).send("PDF CREATED");
             }
           });
@@ -149,7 +145,6 @@ export class LabelsController extends BaseController {
             subCatData,
             creator
           );
-          logger.log("PDF IN DATABASE");
           res.status(200).send(newDoc);
         }
       }
@@ -188,18 +183,15 @@ export class LabelsController extends BaseController {
               console.error(err);
               return;
             }
-            logger.log("File deleted successfully");
           });
           upload.single("pdf")(req, res, async (err) => {
             if (err) {
               return next(err);
             } else {
               const fileName = await req.file.originalname;
-              logger.log(fileName);
               const pdfBuffer = Buffer.from(req.file.buffer);
               const path = `../../../repos/inventive/gena_2/public/images/pdflabels/${catName}/${subCatName}/${fileName}`;
               await fs.promises.writeFile(path, pdfBuffer);
-              logger.log("FILE MADE");
               const newLabel = await labelsService.updateFileName(
                 labelId,
                 fileName
@@ -310,7 +302,6 @@ export class LabelsController extends BaseController {
     try {
       logger.log("Yo");
       upload.array("pdf", 2)(req, res, async (err) => {
-        logger.log(req.files, "THESE ARE THE FILES");
         if (err) {
           return next(err);
         } else {

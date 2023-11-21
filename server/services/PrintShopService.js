@@ -9,164 +9,178 @@ const { readFile, writeFile } = require("fs/promises");
 const { exec } = require("child_process");
 const path = require("path");
 class PrintShopService {
-    async createFilesToPrint(token, id) {
-        try {
-            // check to see if account exists and if its printshop making the request
-            const user = await dbContext.Account.findOne({ accessToken: token })
-            if (!user) {
-                return Promise.resolve(400)
-                // only printshop can call this api
-            } else if (user.privileges != 'printshop') {
-                return Promise.resolve(403)
-            } else {
-                // find the order by the id sent in
-                const order = await dbContext.Order.findById(id)
-                if (!order) {
-                    return Promise.resolve(404)
-                }
-                const userOrder = await dbContext.Account.findById(order.creatorId)
-                // variables we will use later
-                let pdfDoc;
-                let path;
-                let path2;
-                let finalPaths = []
-                const mainFolderPath = await this.createMainFolder(userOrder, order)
-                const printShopFolderPath = await this.createPrintShopMainFolder(userOrder, order)
-                // loop through all the labels in the order sent
-                for (let i = 0; i < order.labels.length; i++) {
-                    const label = order.labels[i];
-                    // find the established label that the user ordered
-                    const findOrder = await dbContext.Label.findById(label.labelId)
-                    const materialType = await this.createSubFolder(mainFolderPath, findOrder.materialTypeId)
-                    await this.createPrintShopSubFolder(printShopFolderPath, findOrder.materialTypeId)
-                    // check to see if that label is used to print in bulk
-                    if (findOrder.isBulkLabel == true) {
-                        if (!findOrder.pdfBulkPath) {
-                            logger.log("NO BULK PDF PATH FOUND")
-                            return Promise.resolve(400)
-                        } else {
-                            // find the path of the bulk path to print
-                            // load the file
-                            let pdfBulkPath = `${findOrder.pdfBulkPath}/${findOrder.categoryName}/${findOrder.subCategoryName}/${findOrder.bulkFileName}`
-                            pdfDoc = await PDFDocument.load(await readFile(pdfBulkPath))
-                        }
-                    } else {
-                        // return error if no path was found to that file
-                        if (!findOrder.pdfPath) {
-                            logger.log('NO PDF PATH FOUND')
-                            return Promise.resolve(400)
-                        } else {
-                            // find the path to the file
-                            let pdfDocPath = `${findOrder.pdfPath}/${findOrder.categoryName}/${findOrder.subCategoryName}/${findOrder.fileName}`
-                            // load the file
-                            pdfDoc = await PDFDocument.load(await readFile(pdfDocPath))
-                        }
-                    }
-                    // read the pdf
-                    const form = pdfDoc.getForm()
-                    const fieldNames = form.getFields().map(field => field.getName());
-                    logger.log(fieldNames);
-                    // if kanban (files you put text on do the loop)
-                    if (findOrder.isKanban == true) {
-                        for (let i = 0; i < findOrder.fields.length; i++) {
-                            try {
-                                const field = findOrder.fields[i];
-                                const inputName = field.name
-                                if (inputName == 'AREA') {
-                                    const dropdown = form.getDropdown(inputName)
-                                    dropdown.select(label.textToPut[i].text)
-                                } else {
-                                    const fieldToFill = form.getTextField(inputName)
-                                    logger.log(label.textToPut[i].text)
-                                    fieldToFill.setText(label.textToPut[i].text)
-                                }
-                            } catch (error) {
-                                const field = findOrder.fields[i];
-                                const inputName = field.name
-                                const checkbox = form.getCheckBox(inputName)
-                                if (label.textToPut[i].text == 'true') {
-                                    checkbox.check()
-                                    logger.log(label.textToPut[i].text)
-                                }
-                            }
-
-                        }
-                    } else if (findOrder.isSerial) {
-                        // do separate loop if serial number so it can save serialNum in database for each file iteration
-                        for (let l = 0; l < label.qty; l++) {
-                            const orderedLabel = await dbContext.Label.findById(label.labelId)
-                            let serialCounter = orderedLabel.currentSerialNum
-                            for (let i = 0; i < fieldNames.length; i++) {
-                                const field = fieldNames[i];
-                                const inputName = field
-                                const fieldToFill = form.getTextField(inputName)
-                                fieldToFill.setText(serialCounter.toString())
-                                serialCounter++
-
-                            }
-                            let serialData = { currentSerialNum: serialCounter }
-                            const filterId = { _id: label.labelId }
-                            const reCurr = { returnOriginal: false }
-                            const updatedLabel = await dbContext.Label.findByIdAndUpdate(filterId, serialData, reCurr)
-                            let pdfBytes = await pdfDoc.save()
-                            if (l == 0) {
-                                path = `${mainFolderPath}/${materialType}/${findOrder.fileName}-(${i})(${l}).pdf`
-                                path2 = `${printShopFolderPath}/${materialType}/${findOrder.fileName}-(${i})(${l}).pdf`
-                            } else {
-                                let newName = findOrder.fileName.slice(0, -4);
-                                path = `${mainFolderPath}/${materialType}/${newName}-(${i})(${l}).pdf`
-                                path2 = `${printShopFolderPath}/${materialType}/${newName}-(${i})(${l}).pdf`
-                            }
-                            if (fs.existsSync(path)) {
-                                let newName = findOrder.fileName.slice(0, -4);
-                                path = `${mainFolderPath}/${materialType}/${newName}-(${i})(${l}).pdf`
-                                path2 = `${mainFolderPath}/${materialType}/${newName}-(${i})(${l}).pdf`
-                                await fs.promises.writeFile(path, pdfBytes)
-                                await fs.promises.writeFile(path2, pdfBytes)
-                            } else {
-                                await fs.promises.writeFile(path, pdfBytes)
-                                await fs.promises.writeFile(path2, pdfBytes)
-                            }
-                            finalPaths.push(path)
-                        }
-                    }
-                    if (findOrder.isSerial != true) {
-                        // loop to print quantity the user requests
-                        for (let s = 0; s < label.qty; s++) {
-                            const pdfBytes = await pdfDoc.save()
-                            // NOW CREATE FILE PATH TO WHERE TO SAVE THE PDF DOC
-                            if (s == 0) {
-                                path = `${mainFolderPath}/${materialType}/${findOrder.fileName}-(${i})(${s}).pdf`
-                                path2 = `${printShopFolderPath}/${materialType}/${findOrder.fileName}-(${i})(${s}).pdf`
-                            } else {
-                                let newName = findOrder.fileName.slice(0, -4);
-                                path = `${mainFolderPath}/${materialType}/${newName}-(${i})(${s}).pdf`
-                                path2 = `${printShopFolderPath}/${materialType}/${newName}-(${i})(${s}).pdf`
-                            }
-                            if (fs.existsSync(path)) {
-                                let newName = findOrder.fileName.slice(0, -4);
-                                path = `${mainFolderPath}/${materialType}/${newName}-(${i})(${s}).pdf`
-                                path2 = `${printShopFolderPath}/${materialType}/${newName}-(${i})(${s}).pdf`
-                                await fs.promises.writeFile(path, pdfBytes)
-                                await fs.promises.writeFile(path2, pdfBytes)
-                            } else {
-                                await fs.promises.writeFile(path, pdfBytes)
-                                await fs.promises.writeFile(path2, pdfBytes)
-                            }
-                            finalPaths.push(path)
-                        }
-                    }
-                }
-                await this.addFinalPath(finalPaths, id)
-            }
-            await this.updateOrder(id)
-            const finishedOrder = await dbContext.Order.findById(id)
-            return Promise.resolve(finishedOrder)
-        } catch (error) {
-            logger.error(error)
-            return error
+  async createFilesToPrint(token, id) {
+    try {
+      // check to see if account exists and if its printshop making the request
+      const user = await dbContext.Account.findOne({ accessToken: token });
+      if (!user) {
+        return Promise.resolve(400);
+        // only printshop can call this api
+      } else if (user.privileges != "printshop") {
+        return Promise.resolve(403);
+      } else {
+        // find the order by the id sent in
+        const order = await dbContext.Order.findById(id);
+        if (!order) {
+          return Promise.resolve(404);
         }
+        const userOrder = await dbContext.Account.findById(order.creatorId);
+        // variables we will use later
+        let pdfDoc;
+        let path;
+        let path2;
+        let finalPaths = [];
+        const mainFolderPath = await this.createMainFolder(userOrder, order);
+        const printShopFolderPath = await this.createPrintShopMainFolder(
+          userOrder,
+          order
+        );
+        // loop through all the labels in the order sent
+        for (let i = 0; i < order.labels.length; i++) {
+          const label = order.labels[i];
+          // find the established label that the user ordered
+          const findOrder = await dbContext.Label.findById(label.labelId);
+          const materialType = await this.createSubFolder(
+            mainFolderPath,
+            findOrder.materialTypeId
+          );
+          await this.createPrintShopSubFolder(
+            printShopFolderPath,
+            findOrder.materialTypeId
+          );
+          // check to see if that label is used to print in bulk
+          if (findOrder.isBulkLabel == true) {
+            if (!findOrder.pdfBulkPath) {
+              logger.log("NO BULK PDF PATH FOUND");
+              return Promise.resolve(400);
+            } else {
+              // find the path of the bulk path to print
+              // load the file
+              let pdfBulkPath = `${findOrder.pdfBulkPath}/${findOrder.categoryName}/${findOrder.subCategoryName}/${findOrder.bulkFileName}`;
+              pdfDoc = await PDFDocument.load(await readFile(pdfBulkPath));
+            }
+          } else {
+            // return error if no path was found to that file
+            if (!findOrder.pdfPath) {
+              logger.log("NO PDF PATH FOUND");
+              return Promise.resolve(400);
+            } else {
+              // find the path to the file
+              let pdfDocPath = `${findOrder.pdfPath}/${findOrder.categoryName}/${findOrder.subCategoryName}/${findOrder.fileName}`;
+              // load the file
+              pdfDoc = await PDFDocument.load(await readFile(pdfDocPath));
+            }
+          }
+          // read the pdf
+          const form = pdfDoc.getForm();
+          const fieldNames = form.getFields().map((field) => field.getName());
+          // if kanban (files you put text on do the loop)
+          if (findOrder.isKanban == true) {
+            for (let i = 0; i < findOrder.fields.length; i++) {
+              try {
+                const field = findOrder.fields[i];
+                const inputName = field.name;
+                if (inputName == "AREA") {
+                  const dropdown = form.getDropdown(inputName);
+                  if (label.textToPut[i].text == "") {
+                    continue
+                } else {
+                    dropdown.select(label.textToPut[i].text)
+                }
+                } else {
+                  const fieldToFill = form.getTextField(inputName);
+                  fieldToFill.setText(label.textToPut[i].text);
+                }
+              } catch (error) {
+                const field = findOrder.fields[i];
+                const inputName = field.name;
+                const checkbox = form.getCheckBox(inputName);
+                if (label.textToPut[i].text == "true") {
+                  checkbox.check();
+                }
+              }
+            }
+          } else if (findOrder.isSerial) {
+            // do separate loop if serial number so it can save serialNum in database for each file iteration
+            for (let l = 0; l < label.qty; l++) {
+              const orderedLabel = await dbContext.Label.findById(
+                label.labelId
+              );
+              let serialCounter = orderedLabel.currentSerialNum;
+              for (let i = 0; i < fieldNames.length; i++) {
+                const field = fieldNames[i];
+                const inputName = field;
+                const fieldToFill = form.getTextField(inputName);
+                fieldToFill.setText(serialCounter.toString());
+                serialCounter++;
+              }
+              let serialData = { currentSerialNum: serialCounter };
+              const filterId = { _id: label.labelId };
+              const reCurr = { returnOriginal: false };
+              const updatedLabel = await dbContext.Label.findByIdAndUpdate(
+                filterId,
+                serialData,
+                reCurr
+              );
+              let pdfBytes = await pdfDoc.save();
+              if (l == 0) {
+                path = `${mainFolderPath}/${materialType}/${findOrder.fileName}-(${i})(${l}).pdf`;
+                path2 = `${printShopFolderPath}/${materialType}/${findOrder.fileName}-(${i})(${l}).pdf`;
+              } else {
+                let newName = findOrder.fileName.slice(0, -4);
+                path = `${mainFolderPath}/${materialType}/${newName}-(${i})(${l}).pdf`;
+                path2 = `${printShopFolderPath}/${materialType}/${newName}-(${i})(${l}).pdf`;
+              }
+              if (fs.existsSync(path)) {
+                let newName = findOrder.fileName.slice(0, -4);
+                path = `${mainFolderPath}/${materialType}/${newName}-(${i})(${l}).pdf`;
+                path2 = `${mainFolderPath}/${materialType}/${newName}-(${i})(${l}).pdf`;
+                await fs.promises.writeFile(path, pdfBytes);
+                await fs.promises.writeFile(path2, pdfBytes);
+              } else {
+                await fs.promises.writeFile(path, pdfBytes);
+                await fs.promises.writeFile(path2, pdfBytes);
+              }
+              finalPaths.push(path);
+            }
+          }
+          if (findOrder.isSerial != true) {
+            // loop to print quantity the user requests
+            for (let s = 0; s < label.qty; s++) {
+              const pdfBytes = await pdfDoc.save();
+              // NOW CREATE FILE PATH TO WHERE TO SAVE THE PDF DOC
+              if (s == 0) {
+                path = `${mainFolderPath}/${materialType}/${findOrder.fileName}-(${i})(${s}).pdf`;
+                path2 = `${printShopFolderPath}/${materialType}/${findOrder.fileName}-(${i})(${s}).pdf`;
+              } else {
+                let newName = findOrder.fileName.slice(0, -4);
+                path = `${mainFolderPath}/${materialType}/${newName}-(${i})(${s}).pdf`;
+                path2 = `${printShopFolderPath}/${materialType}/${newName}-(${i})(${s}).pdf`;
+              }
+              if (fs.existsSync(path)) {
+                let newName = findOrder.fileName.slice(0, -4);
+                path = `${mainFolderPath}/${materialType}/${newName}-(${i})(${s}).pdf`;
+                path2 = `${printShopFolderPath}/${materialType}/${newName}-(${i})(${s}).pdf`;
+                await fs.promises.writeFile(path, pdfBytes);
+                await fs.promises.writeFile(path2, pdfBytes);
+              } else {
+                await fs.promises.writeFile(path, pdfBytes);
+                await fs.promises.writeFile(path2, pdfBytes);
+              }
+              finalPaths.push(path);
+            }
+          }
+        }
+        await this.addFinalPath(finalPaths, id);
+      }
+      await this.updateOrder(id);
+      const finishedOrder = await dbContext.Order.findById(id);
+      return Promise.resolve(finishedOrder);
+    } catch (error) {
+      logger.error(error);
+      return error;
     }
+  }
 
   async sleepFileCreation(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms));
@@ -182,7 +196,6 @@ class PrintShopService {
       status: "processing",
       updatedOn: Date.now(),
     });
-    logger.log(data);
     return Promise.resolve(data);
   }
 
@@ -239,7 +252,6 @@ class PrintShopService {
   async deliverOrder(id, token) {
     try {
       const user = await dbContext.Account.findOne({ accessToken: token });
-      logger.log(user[0]);
       if (!user) {
         return Promise.resolve(400);
       } else if (user.privileges != "printshop") {
@@ -279,7 +291,6 @@ class PrintShopService {
       }
       let newString = substring.slice(46);
       let finalStr = "\\\\web\\data\\marketing\\label-orders" + newString;
-      logger.log(finalStr);
 
       if (process.platform === "darwin") {
         // macOS

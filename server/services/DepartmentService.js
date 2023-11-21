@@ -13,7 +13,6 @@ class DepartmentService {
   async createDepartment(token, data) {
     try {
       const user = await dbContext.Account.findOne({ accessToken: token });
-      logger.log(user);
       if (user.privileges != "admin" && user.privileges != "printshop") {
         return Promise.resolve(403);
       } else {

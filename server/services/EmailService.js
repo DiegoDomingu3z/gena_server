@@ -163,7 +163,7 @@ class EmailService {
         return;
       }
     } catch (error) {
-      logger.log(error);
+      logger.error(error);
     }
   }
 
@@ -215,7 +215,7 @@ class EmailService {
                </html>`;
       await createTransport(email, subject, body, cc);
     } catch (error) {
-      logger.log(error);
+      logger.error(error);
     }
   }
 
@@ -287,7 +287,7 @@ class EmailService {
 
       // error message
     } catch (err) {
-      logger.log("Error (catch): ", err);
+      logger.error("Error (catch): ", err);
     }
   }
 
@@ -365,7 +365,7 @@ class EmailService {
         `;
       await createTransport(email, subject, body, cc);
     } catch (error) {
-      logger.log(error);
+      logger.error(error);
     }
   }
 
@@ -429,7 +429,7 @@ class EmailService {
         `;
       await createTransport(email, subject, body, cc);
     } catch (error) {
-      logger.log(error);
+      logger.error(error);
     }
   }
 
@@ -496,7 +496,7 @@ class EmailService {
         `;
       await createTransport(email, subject, body, cc);
     } catch (error) {
-      logger.log(error);
+      logger.error(error);
     }
   }
 }

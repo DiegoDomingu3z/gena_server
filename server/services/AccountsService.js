@@ -64,7 +64,6 @@ class AccountsService {
           email: data.email,
         };
         const newData = await dbContext.Account.create(sanitizedData);
-        logger.log(newData);
         if (!newData) {
           return 401;
         } else {
