@@ -4,6 +4,8 @@ import { Startup } from './Startup'
 import { DbConnection } from './db/DbConfig'
 import { logger } from './utils/Logger'
 import { createServer } from 'http'
+import { orderService } from './services/OrderService'
+import { CronJob } from 'cron';
 const mongoose = require('mongoose');
 
 const app = express()
@@ -21,7 +23,15 @@ socketProvider.initialize(httpServer)
 
 DbConnection.connect()
 
-
+const dailyMaintenance = new CronJob(
+    '0 6 * * *',
+    async () => {
+        await orderService.deleteOldOrders();
+    },
+    null,
+    true,
+    'America/Denver'
+);
 
 // Start Server
 httpServer.listen(port, () => {

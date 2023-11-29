@@ -2,6 +2,8 @@ import mongoose from "mongoose";
 import { dbContext } from "../db/DbContext";
 import { logger } from "../utils/Logger";
 import { emailService } from "./EmailService";
+const fs = require("fs");
+const filePath = require("path");
 
 class OrderService {
   async createOrder(token, data) {
@@ -360,6 +362,85 @@ class OrderService {
     } catch (error) {
       logger.error(error);
       return error;
+    }
+  }
+
+  async deleteOldOrders() {
+    const twoWeeksAgo = new Date();
+    twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
+    try {
+      const ordersBeforeDeletion = await dbContext.Order.find({
+        status: "delivered",
+      });
+      const deletedOrders = await dbContext.Order.deleteMany({
+        status: "delivered",
+        updatedOn: { $lt: twoWeeksAgo },
+      });
+      const ordersAfterDeletion = await dbContext.Order.find({
+        status: "delivered",
+      });
+      const deletedOrdersArray = ordersBeforeDeletion.filter(
+        (orderBefore) => !ordersAfterDeletion.some((orderAfter) => orderBefore.id === orderAfter.id)
+      );
+
+      // If there are deleted orders then delete the directories
+      if (deletedOrders.deletedCount > 0) {
+        const directoriesToDeleteProps = deletedOrdersArray.map(
+          async (order) => {
+            const deletedOrderOwner = await dbContext.Account.findById(
+              order.creatorId
+            );
+            const { department, firstName, lastName } = deletedOrderOwner;
+
+            return {
+              department: department,
+              firstName: firstName,
+              lastName: lastName,
+              orderId: order._id,
+            };
+          }
+        );
+
+        const directoriesToDelete = await Promise.all(directoriesToDeleteProps);
+
+        directoriesToDelete.forEach(async (directory, index) => {
+          const { department, firstName, lastName, orderId } = directory;
+          const pathToDirectory = filePath.join(
+            __dirname,
+            "..",
+            "..",
+            "..",
+            "gena_2",
+            "server",
+            "images",
+            "prints",
+            `${department}-${firstName}-${lastName}-${orderId}`
+          );
+
+          try {
+            await fs.rm(pathToDirectory, { recursive: true, force: true }, () => {
+              console.log(`%cSuccessfully removed directory: ${pathToDirectory}`, "color:#edc81d");
+              if(index == directoriesToDelete.length - 1) {
+                logger.log("_".repeat(100));
+              }
+            });
+          } catch (error) {
+            logger.error(`Error removing directory ${pathToDirectory}: ${error.message}`);
+          }
+        });
+        
+        logger.log('_'.repeat(100));
+        logger.log(`DAILY MAINTENANCE: ${deletedOrders.deletedCount} Old Order${deletedOrders.deletedCount == 1 ? "" : "s"} Deleted. 💀`);
+        logger.log(`DELETED ORDERS:`);
+        logger.log(directoriesToDelete);
+        
+        return;
+      }
+
+      logger.log("DAILY MAINTENANCE: No Old Orders To Delete. 🤗");
+
+    } catch (error) {
+      logger.error(error)
     }
   }
 
