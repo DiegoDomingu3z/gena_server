@@ -451,7 +451,7 @@ class OrderService {
         return;
       }
 
-      logger.log("DAILY MAINTENANCE: No Old Orders To Delete. 🤗");
+      logger.log(`DAILY MAINTENANCE ${formattedToday}: No Old Orders To Delete. 🤗`);
 
     } catch (error) {
       logger.error(error)
