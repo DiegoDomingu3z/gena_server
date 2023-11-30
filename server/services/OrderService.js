@@ -369,6 +369,20 @@ class OrderService {
   async deleteOldOrders() {
     const twoWeeksAgo = new Date();
     twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
+
+    const today = new Date();
+
+    const formatDate = (dateString) => {
+        const date = new Date(dateString);
+        const day = date.getDate();
+        const month = date.getMonth() + 1;
+        const year = date.getFullYear();
+        return `${month}/${day}/${year}`;
+    };
+
+    const formattedToday = formatDate(today)
+    const formattedTwoWeeksAgo = formatDate(twoWeeksAgo)
+
     try {
       const ordersBeforeDeletion = await dbContext.Order.find({
         status: "delivered",
@@ -431,14 +445,14 @@ class OrderService {
         });
         
         logger.log('_'.repeat(100));
-        logger.log(`DAILY MAINTENANCE: ${deletedOrders.deletedCount} Old Order${deletedOrders.deletedCount == 1 ? "" : "s"} Deleted. 💀`);
-        logger.log(`DELETED ORDERS:`);
+        logger.log(`DAILY MAINTENANCE ${formattedToday}: ${deletedOrders.deletedCount} Old Order${deletedOrders.deletedCount == 1 ? "" : "s"} Deleted. 💀`);
+        logger.log(`DELETED ORDERS FROM ${formattedTwoWeeksAgo}:`);
         logger.log(directoriesToDelete);
         
         return;
       }
 
-      logger.log("DAILY MAINTENANCE: No Old Orders To Delete. 🤗");
+      logger.log(`DAILY MAINTENANCE ${formattedToday}: No Old Orders To Delete. 🤗`);
 
     } catch (error) {
       logger.error(error)
