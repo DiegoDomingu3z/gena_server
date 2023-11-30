@@ -6,6 +6,7 @@ export const OrderSchema = new Schema({
   creatorId: { type: ObjectId, ref: "Account", required: true },
   creatorName: { type: String, required: true },
   notes: { type: String },
+  orderName: { type: String },
   createdOn: { type: Date, required: true, default: Date.now },
   updatedOn: { type: Date, required: true, default: Date.now },
   status: {

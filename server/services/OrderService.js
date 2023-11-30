@@ -45,6 +45,7 @@ class OrderService {
         const sanatizedData = {
           creatorId: user._id,
           creatorName: `${user.firstName} ${user.lastName}`,
+          orderName: data.name,
           notes: data.notes,
           status: status,
           labels: data.labels,

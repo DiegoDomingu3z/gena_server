@@ -270,6 +270,7 @@ class EmailService {
                 <p>
                     ${order.creatorName} is requesting Gena order approval
                 </p>
+                ${order.orderName && `<p>Order Name: ${order.orderName}</p>`}
                 <p>
                     OrderId: ${order._id}
                 </p>
@@ -354,8 +355,9 @@ class EmailService {
         <div>
         <h3 class="green">SUCCESSFUL Gena ORDER PLACED</h3>
         <p>Order Creator: ${data.creatorName}</p>
+        ${data.orderName && `<p>Order Name: ${data.orderName}</p>`}
         <p>ORDER ID: ${data._id}</p>
-        <p>Notes: ${data.notes ? data.note : "N/A"}  </p>
+        <p>Notes: ${data.notes ? data.notes : "N/A"}  </p>
         <p>Created On: ${month}/${day}/${year}</p>  
         <p>Label Docs Ordered: <br> ${docNums} </p>
         </div>
@@ -422,7 +424,7 @@ class EmailService {
         <body>
         <h3 class="error">ERROR PLACING GENA ORDER</h3>
         <p>Order Creator: ${user.firstName} ${user.lastName}</p>
-        <p>Notes: ${data.notes ? data.note : "N/A"}  </p>
+        <p>Notes: ${data.notes ? data.notes : "N/A"}  </p>
         <p>Label Docs Ordered: <br> ${docNums} </p>
         </body>
         </html>
@@ -488,8 +490,9 @@ class EmailService {
         <body>
         <h3 class="pickup">ORDER IS READY FOR PICKUP</h3>
         <p>Order Creator: ${user.firstName} ${user.lastName}</p>
+        ${order.orderName && `<p>Order Name: ${order.orderName}</p>`}
         <p>ORDER ID: ${order._id}</p>
-        <p>Notes: ${order.notes ? order.note : "N/A"}  </p>
+        <p>Notes: ${order.notes ? order.notes : "N/A"}  </p>
         <p>Label Docs Ordered: <br> ${docNums} </p>
         </body>
         </html>
