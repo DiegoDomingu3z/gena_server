@@ -106,6 +106,16 @@ class PrintShopService {
               const orderedLabel = await dbContext.Label.findById(
                 label.labelId
               );
+              const serialFilter = { _id: order._id, "labels._id": label._id };
+              const update = {
+                $set: { "labels.$.serialRange": orderedLabel.nextSerialsToPrint },
+              };
+              const serialOptions = { returnOriginal: false };
+              const updatedLabelSerials = await dbContext.Order.findOneAndUpdate(
+                serialFilter,
+                update,
+                serialOptions
+              );
               let serialCounter = orderedLabel.currentSerialNum;
               for (let i = 0; i < fieldNames.length; i++) {
                 const field = fieldNames[i];
@@ -114,7 +124,12 @@ class PrintShopService {
                 fieldToFill.setText(serialCounter.toString());
                 serialCounter++;
               }
-              let serialData = { currentSerialNum: serialCounter };
+              let serialData = {
+                currentSerialNum: serialCounter,
+                nextSerialsToPrint: `${serialCounter} - ${
+                  serialCounter + orderedLabel.unitPack - 1
+                }`,
+              };
               const filterId = { _id: label.labelId };
               const reCurr = { returnOriginal: false };
               const updatedLabel = await dbContext.Label.findByIdAndUpdate(

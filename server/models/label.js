@@ -33,4 +33,5 @@ export const labelSchema = new Schema({
   name: { type: String, required: true },
   isSerial: { type: Boolean },
   currentSerialNum: { type: Number },
+  nextSerialsToPrint: { type: String }
 });

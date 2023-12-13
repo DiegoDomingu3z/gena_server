@@ -30,6 +30,7 @@ export const OrderSchema = new Schema({
           text: { type: String },
         },
       ],
+      serialRange: { type: String },
       createdOn: { type: Date, default: Date.now },
       updatedOn: { type: Date, default: Date.now },
     },

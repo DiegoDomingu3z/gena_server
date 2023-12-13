@@ -72,6 +72,7 @@ class LabelsService {
       };
       if (data.isSerial == true) {
         labelData.currentSerialNum = data.currentSerialNum;
+        labelData.nextSerialsToPrint = `${data.currentSerialNum} - ${data.currentSerialNum + data.unitPack - 1}`
       }
       const newDoc = await dbContext.Label.create(labelData);
       return newDoc;

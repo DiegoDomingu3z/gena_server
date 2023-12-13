@@ -270,7 +270,7 @@ class EmailService {
                 <p>
                     ${order.creatorName} is requesting Gena order approval
                 </p>
-                ${order.orderName && `<p>Order Name: ${order.orderName}</p>`}
+                ${order.orderName ? `<p>Order Name: ${order.orderName}</p>` : "Order Name: N/A"}
                 <p>
                     OrderId: ${order._id}
                 </p>
@@ -355,7 +355,7 @@ class EmailService {
         <div>
         <h3 class="green">SUCCESSFUL Gena ORDER PLACED</h3>
         <p>Order Creator: ${data.creatorName}</p>
-        ${data.orderName && `<p>Order Name: ${data.orderName}</p>`}
+        ${data.orderName ? `<p>Order Name: ${data.orderName}</p>` : "Order Name: N/A"}
         <p>ORDER ID: ${data._id}</p>
         <p>Notes: ${data.notes ? data.notes : "N/A"}  </p>
         <p>Created On: ${month}/${day}/${year}</p>  
@@ -460,16 +460,16 @@ class EmailService {
       });
       const email = emails[user.department];
       if (user.email) {
-        cc = user.email;
+        cc = user.email, "KristinK@inventive-group.com";
       } else {
-        cc = "";
+        cc = "KristinK@inventive-group.com";
       }
       let docNums = [];
       for (let i = 0; i < order.labels.length; i++) {
         const label = order.labels[i];
         const labelDoc = await dbContext.Label.findOne({ _id: label.labelId });
         docNums.push(
-          `<b>${labelDoc.docNum} </b> QTY(${label.qty})  <br>------------<br><br>`
+          `<b>${labelDoc.docNum} </b> QTY(${label.qty}) ${label.serialRange ? `<br>Serial Range: ${label.serialRange}` : ""} <br>------------<br><br>`
         );
       }
       docNums.toString();
@@ -490,7 +490,7 @@ class EmailService {
         <body>
         <h3 class="pickup">ORDER IS READY FOR PICKUP</h3>
         <p>Order Creator: ${user.firstName} ${user.lastName}</p>
-        ${order.orderName && `<p>Order Name: ${order.orderName}</p>`}
+        ${order.orderName ? `<p>Order Name: ${order.orderName}</p>` : "Order Name: N/A"}
         <p>ORDER ID: ${order._id}</p>
         <p>Notes: ${order.notes ? order.notes : "N/A"}  </p>
         <p>Label Docs Ordered: <br> ${docNums} </p>
