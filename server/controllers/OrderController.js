@@ -24,7 +24,7 @@ export class OrderController extends BaseController {
       .put("/:id/approve", this.approveOrder)
       .put("/:id/decline", this.declineOrder)
       .put("/:id/deliver", this.printShopDeliverOrder)
-      .put('/:id/update-to-pickup', this.updateToPickup)
+      .put("/:id/update-to-pickup", this.updateToPickup)
       .post("/group-lead/labels/to-see", this.getGroupLeadOrderApproveLabels)
       .put("/:id/picked-up-by", this.pickedUpBy);
   }
@@ -302,30 +302,29 @@ export class OrderController extends BaseController {
     }
   }
 
-    async approveOrder(req, res, next) {
-        try {
-            const token = req.header("Authorization")
-            const id = req.params.id
-            const orderApproved = await orderService.approveOrder(token, id)
-            res.status(200).send(orderApproved)
-            socketProvider.io.emit('approvedOrder', {status: 200})
-        } catch (error) {
-            logger.error(error)
-            next()
-        }
+  async approveOrder(req, res, next) {
+    try {
+      const token = req.header("Authorization");
+      const id = req.params.id;
+      const orderApproved = await orderService.approveOrder(token, id);
+      res.status(200).send(orderApproved);
+      socketProvider.io.emit("approvedOrder", { status: 200 });
+    } catch (error) {
+      logger.error(error);
+      next();
     }
-    async declineOrder(req, res, next) {
-        try {
-            const token = req.header("Authorization")
-            const id = req.params.id
-            const declinedOrder = await orderService.declineOrder(token, id)
-            res.status(200).send(declinedOrder)
-        } catch (error) {
-            logger.error(error)
-            next()
-        }
+  }
+  async declineOrder(req, res, next) {
+    try {
+      const token = req.header("Authorization");
+      const id = req.params.id;
+      const declinedOrder = await orderService.declineOrder(token, id);
+      res.status(200).send(declinedOrder);
+    } catch (error) {
+      logger.error(error);
+      next();
     }
-
+  }
 
   async printShopDeliverOrder(req, res, next) {
     try {
@@ -361,4 +360,3 @@ export class OrderController extends BaseController {
     }
   }
 }
-

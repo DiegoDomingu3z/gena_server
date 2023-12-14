@@ -1,39 +1,47 @@
-import express from 'express'
-import { socketProvider } from './SocketProvider'
-import { Startup } from './Startup'
-import { DbConnection } from './db/DbConfig'
-import { logger } from './utils/Logger'
-import { createServer } from 'http'
-import { orderService } from './services/OrderService'
-import { CronJob } from 'cron';
-const mongoose = require('mongoose');
+import express from "express";
+import { socketProvider } from "./SocketProvider";
+import { Startup } from "./Startup";
+import { DbConnection } from "./db/DbConfig";
+import { logger } from "./utils/Logger";
+import { createServer } from "http";
+import { orderService } from "./services/OrderService";
+import { CronJob } from "cron";
+const mongoose = require("mongoose");
 
-const app = express()
-const port = process.env.PORT || 3000
+const app = express();
+const port = process.env.PORT || 3000;
 
-const httpServer = createServer(app)
-Startup.ConfigureGlobalMiddleware(app)
-Startup.ConfigureRoutes(app)
-
+const httpServer = createServer(app);
+Startup.ConfigureGlobalMiddleware(app);
+Startup.ConfigureRoutes(app);
 
 process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0;
 
+socketProvider.initialize(httpServer);
 
-socketProvider.initialize(httpServer)
-
-DbConnection.connect()
+DbConnection.connect();
 
 const dailyMaintenance = new CronJob(
-    '0 6 * * *',
-    async () => {
-        await orderService.deleteOldOrders();
-    },
-    null,
-    true,
-    'America/Denver'
+  "0 6 * * *",
+  async () => {
+    await orderService.deleteOldOrders();
+  },
+  null,
+  true,
+  "America/Denver"
+);
+
+const dailyArchive = new CronJob(
+  "*/10 * * * * *",
+  async () => {
+    await orderService.dailyArchive();
+  },
+  null,
+  true,
+  "America/Denver"
 );
 
 // Start Server
 httpServer.listen(port, () => {
-    logger.log(`[SERVING ON PORT: ${port}]`)
-})
+  logger.log(`[SERVING ON PORT: ${port}]`);
+});

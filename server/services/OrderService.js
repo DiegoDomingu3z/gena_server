@@ -2,8 +2,11 @@ import mongoose from "mongoose";
 import { dbContext } from "../db/DbContext";
 import { logger } from "../utils/Logger";
 import { emailService } from "./EmailService";
+const fse = require("fs-extra");
 const fs = require("fs");
 const filePath = require("path");
+const util = require("util");
+const mkdir = util.promisify(fs.mkdir);
 
 class OrderService {
   async createOrder(token, data) {
@@ -373,15 +376,15 @@ class OrderService {
     const today = new Date();
 
     const formatDate = (dateString) => {
-        const date = new Date(dateString);
-        const day = date.getDate();
-        const month = date.getMonth() + 1;
-        const year = date.getFullYear();
-        return `${month}/${day}/${year}`;
+      const date = new Date(dateString);
+      const day = date.getDate();
+      const month = date.getMonth() + 1;
+      const year = date.getFullYear();
+      return `${month}/${day}/${year}`;
     };
 
-    const formattedToday = formatDate(today)
-    const formattedTwoWeeksAgo = formatDate(twoWeeksAgo)
+    const formattedToday = formatDate(today);
+    const formattedTwoWeeksAgo = formatDate(twoWeeksAgo);
 
     try {
       const ordersBeforeDeletion = await dbContext.Order.find({
@@ -395,7 +398,10 @@ class OrderService {
         status: "delivered",
       });
       const deletedOrdersArray = ordersBeforeDeletion.filter(
-        (orderBefore) => !ordersAfterDeletion.some((orderAfter) => orderBefore.id === orderAfter.id)
+        (orderBefore) =>
+          !ordersAfterDeletion.some(
+            (orderAfter) => orderBefore.id === orderAfter.id
+          )
       );
 
       // If there are deleted orders then delete the directories
@@ -433,29 +439,43 @@ class OrderService {
           );
 
           try {
-            await fs.rm(pathToDirectory, { recursive: true, force: true }, () => {
-              console.log(`%cSuccessfully removed directory: ${pathToDirectory}`, "color:#edc81d");
-              if(index == directoriesToDelete.length - 1) {
-                logger.log("_".repeat(100));
+            await fs.rm(
+              pathToDirectory,
+              { recursive: true, force: true },
+              () => {
+                console.log(
+                  `%cSuccessfully removed directory: ${pathToDirectory}`,
+                  "color:#edc81d"
+                );
+                if (index == directoriesToDelete.length - 1) {
+                  logger.log("_".repeat(100));
+                }
               }
-            });
+            );
           } catch (error) {
-            logger.error(`Error removing directory ${pathToDirectory}: ${error.message}`);
+            logger.error(
+              `Error removing directory ${pathToDirectory}: ${error.message}`
+            );
           }
         });
-        
-        logger.log('_'.repeat(100));
-        logger.log(`DAILY MAINTENANCE ${formattedToday}: ${deletedOrders.deletedCount} Old Order${deletedOrders.deletedCount == 1 ? "" : "s"} Deleted. 💀`);
+
+        logger.log("_".repeat(100));
+        logger.log(
+          `DAILY MAINTENANCE ${formattedToday}: ${
+            deletedOrders.deletedCount
+          } Old Order${deletedOrders.deletedCount == 1 ? "" : "s"} Deleted. 💀`
+        );
         logger.log(`DELETED ORDERS FROM ${formattedTwoWeeksAgo}:`);
         logger.log(directoriesToDelete);
-        
+
         return;
       }
 
-      logger.log(`DAILY MAINTENANCE ${formattedToday}: No Old Orders To Delete. 🤗`);
-
+      logger.log(
+        `DAILY MAINTENANCE ${formattedToday}: No Old Orders To Delete. 🤗`
+      );
     } catch (error) {
-      logger.error(error)
+      logger.error(error);
     }
   }
 
@@ -801,6 +821,134 @@ class OrderService {
       logger.log(error);
       return error;
     }
+  }
+
+  formattedDate() {
+    const today = new Date();
+    const dd = String(today.getDate()).padStart(2, "0");
+    const mm = today.toLocaleString("default", { month: "short" });
+    const yyyy = today.getFullYear();
+    const date = `${mm}-${dd}-${yyyy}`;
+
+    return date;
+  }
+
+  async dailyArchive() {
+    const dateForFolderFormatting = this.formattedDate();
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const startOfDay = new Date(today);
+    startOfDay.setHours(8, 0, 0, 0);
+
+    const endOfDay = new Date(today);
+    endOfDay.setHours(17, 0, 0, 0);
+
+    try {
+      const todaysOrders = await dbContext.Order.find({
+        updatedOn: {
+          $gte: startOfDay,
+          $lt: endOfDay,
+        },
+        status: "delivered",
+      });
+
+      //! This is for Production
+      // const mainFolderPath = filePath.join(
+      //   __dirname,
+      //   "..",
+      //   "..",
+      //   "..",
+      //   "..",
+      //   "..",
+      //   "data",
+      //   "marketing",
+      //   "order-archives",
+      //   `Delivered-${dateForFolderFormatting}`
+      // );
+
+      //! This is for Dev
+      const mainFolderPath = filePath.join(
+        __dirname,
+        "..",
+        "..",
+        "..",
+        "gena_2",
+        "server",
+        "archives",
+        `Delivered-${dateForFolderFormatting}`
+      );
+
+      await mkdir(mainFolderPath, { recursive: true });
+
+      const archive = todaysOrders.forEach((order) =>
+        this.archiveOrder(order, mainFolderPath)
+      );
+    } catch (error) {
+      logger.error(error);
+    }
+  }
+
+  async archiveOrder(order, mainFolderPath) {
+    try {
+      const user = await dbContext.Account.findById(order.creatorId);
+
+      // move order folders for the day over to the archivePath
+      const archivePath = await this.moveToArchives(
+        user,
+        order._id,
+        mainFolderPath
+      );
+
+      // create record of archive in db
+      const sanitizedLabelData = order.labels.map((label) => ({
+        qty: label.qty,
+        labelId: label.labelId,
+        textToPut: label.textToPut,
+        serialRange: label.serialRange,
+      }));
+
+      const sanitizedData = {
+        orderId: order._id,
+        creatorId: order.creatorId,
+        archivePath: archivePath,
+        creatorName: order.creatorName,
+        orderName: order.orderName,
+        notes: order.notes,
+        orderCreatedOn: order.createdOn,
+        labels: sanitizedLabelData,
+        pickedUpBy: order.pickedUpBy,
+      };
+      const archivedOrder = await dbContext.ArchivedOrder.create(sanitizedData);
+    } catch (error) {
+      logger.error(error);
+      return error;
+    }
+  }
+
+  async moveToArchives(user, orderId, archivePath) {
+    const folderToMove = filePath.join(
+      __dirname,
+      "..",
+      "..",
+      "..",
+      "gena_2",
+      "server",
+      "images",
+      "prints",
+      `${user.department}-${user.firstName}-${user.lastName}-${orderId}`
+    );
+
+    const newPath = filePath.join(
+      archivePath,
+      `${user.department}-${user.firstName}-${user.lastName}-${orderId}-archived`
+    );
+
+    const copy = `${folderToMove}-archived`;
+    await fse.copy(folderToMove, copy);
+    await fse.move(copy, newPath);
+
+    return newPath;
   }
 }
 
