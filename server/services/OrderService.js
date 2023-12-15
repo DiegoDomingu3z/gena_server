@@ -833,6 +833,40 @@ class OrderService {
     return date;
   }
 
+  /**
+   ** DAILY DELIVERED ORDERS FOLDER CREATION
+   **  Runs every day @ 7:00AM
+   * @param {Object} order
+   * @param {String} archivePath
+   */
+
+  async createNewDailyFolder() {
+    const dateForFolderFormatting = this.formattedDate();
+
+    // At 7:00AM create a new folder in label-orders for printshop to add delivered
+    // orders to throughout the day
+
+    const dailyDeliveredFolder = filePath.join(
+      "C:",
+      "data",
+      "marketing",
+      "label-orders",
+      `Delivered-${dateForFolderFormatting}`
+    );
+
+    await mkdir(dailyDeliveredFolder, { recursive: true });
+    logger.log(`Created ${dailyDeliveredFolder} for today's delivered orders`);
+  }
+
+  /**
+   ** DAILY ARCHIVE CRONJOB
+   ** This will moved today's Delivered Orders folder from
+      /label-orders to /Print-Shop-Archives
+   **  Runs every day @ 6:00PM
+   * @param {Object} order
+   * @param {String} archivePath
+   */
+
   async dailyArchive() {
     const dateForFolderFormatting = this.formattedDate();
     const today = new Date();
@@ -845,6 +879,30 @@ class OrderService {
     endOfDay.setHours(17, 0, 0, 0);
 
     try {
+      const folderToMove = filePath.join(
+        "C:",
+        "data",
+        "marketing",
+        "label-orders",
+        `Delivered-${dateForFolderFormatting}`
+      );
+
+      //! This is for Production
+      const archivePath = filePath.join(
+        "\\\\media\\Marketing",
+        "Labels",
+        "Print-Shop-Archive",
+        `Delivered-${dateForFolderFormatting}`
+      );
+
+      //! This is for Dev
+      // const archivePath = filePath.join(
+      //   "\\\\media\\Marketing",
+      //   "Labels",
+      //   "Test-Archive",
+      //   `Delivered-${dateForFolderFormatting}`
+      // );
+
       const todaysOrders = await dbContext.Order.find({
         updatedOn: {
           $gte: startOfDay,
@@ -853,52 +911,34 @@ class OrderService {
         status: "delivered",
       });
 
-      //! This is for Production
-      // const mainFolderPath = filePath.join(
-      //   __dirname,
-      //   "..",
-      //   "..",
-      //   "..",
-      //   "..",
-      //   "..",
-      //   "data",
-      //   "marketing",
-      //   "order-archives",
-      //   `Delivered-${dateForFolderFormatting}`
-      // );
+      if (todaysOrders.length < 1) {
+        logger.log("No Orders To Archive Today");
+        return;
+      }
 
-      //! This is for Dev
-      const mainFolderPath = filePath.join(
-        __dirname,
-        "..",
-        "..",
-        "..",
-        "gena_2",
-        "server",
-        "archives",
-        `Delivered-${dateForFolderFormatting}`
-      );
-
-      await mkdir(mainFolderPath, { recursive: true });
+      // at 6:00PM move Delivered fold from label-orders to archived folder
+      // then add an archive record to the db
+      await fse.move(folderToMove, archivePath);
 
       const archive = todaysOrders.forEach((order) =>
-        this.archiveOrder(order, mainFolderPath)
+        this.archiveOrder(order, archivePath)
       );
     } catch (error) {
       logger.error(error);
     }
   }
 
-  async archiveOrder(order, mainFolderPath) {
+  /**
+   ** ARCHIVE ORDER IN DB
+   ** This will archive today's orders in the
+   *  ArchivedOrder collection
+   * @param {Object} order
+   * @param {String} archivePath
+   */
+
+  async archiveOrder(order, archivePath) {
     try {
       const user = await dbContext.Account.findById(order.creatorId);
-
-      // move order folders for the day over to the archivePath
-      const archivePath = await this.moveToArchives(
-        user,
-        order._id,
-        mainFolderPath
-      );
 
       // create record of archive in db
       const sanitizedLabelData = order.labels.map((label) => ({
@@ -924,31 +964,6 @@ class OrderService {
       logger.error(error);
       return error;
     }
-  }
-
-  async moveToArchives(user, orderId, archivePath) {
-    const folderToMove = filePath.join(
-      __dirname,
-      "..",
-      "..",
-      "..",
-      "gena_2",
-      "server",
-      "images",
-      "prints",
-      `${user.department}-${user.firstName}-${user.lastName}-${orderId}`
-    );
-
-    const newPath = filePath.join(
-      archivePath,
-      `${user.department}-${user.firstName}-${user.lastName}-${orderId}-archived`
-    );
-
-    const copy = `${folderToMove}-archived`;
-    await fse.copy(folderToMove, copy);
-    await fse.move(copy, newPath);
-
-    return newPath;
   }
 }
 
