@@ -888,20 +888,20 @@ class OrderService {
       );
 
       //! This is for Production
-      const archivePath = filePath.join(
-        "\\\\media\\Marketing",
-        "Labels",
-        "Print-Shop-Archive",
-        `Delivered-${dateForFolderFormatting}`
-      );
-
-      //! This is for Dev
       // const archivePath = filePath.join(
       //   "\\\\media\\Marketing",
       //   "Labels",
-      //   "Test-Archive",
+      //   "Print-Shop-Archive",
       //   `Delivered-${dateForFolderFormatting}`
       // );
+
+      //! This is for Dev
+      const archivePath = filePath.join(
+        "\\\\media\\Marketing",
+        "Labels",
+        "Test-Archive",
+        `Delivered-${dateForFolderFormatting}`
+      );
 
       const todaysOrders = await dbContext.Order.find({
         updatedOn: {
@@ -911,14 +911,23 @@ class OrderService {
         status: "delivered",
       });
 
+      // at 6:00PM move Delivered fold from label-orders to archived folder
+      // then add an archive record to the db
+      const checkDirLength = await fse.readdir(folderToMove);
+      if (checkDirLength.length < 1) {
+        await fse.remove(folderToMove);
+        logger.log(
+          `No orders today (${dateForFolderFormatting}). Deleted ${folderToMove}`
+        );
+      } else {
+        await fse.move(folderToMove, archivePath);
+        logger.log(`Moved ${folderToMove} to ${archivePath} for archival.`);
+      }
+
       if (todaysOrders.length < 1) {
         logger.log("No Orders To Archive Today");
         return;
       }
-
-      // at 6:00PM move Delivered fold from label-orders to archived folder
-      // then add an archive record to the db
-      await fse.move(folderToMove, archivePath);
 
       const archive = todaysOrders.forEach((order) =>
         this.archiveOrder(order, archivePath)
