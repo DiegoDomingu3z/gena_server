@@ -888,20 +888,20 @@ class OrderService {
       );
 
       //! This is for Production
-      // const archivePath = filePath.join(
-      //   "\\\\media\\Marketing",
-      //   "Labels",
-      //   "Print-Shop-Archive",
-      //   `Delivered-${dateForFolderFormatting}`
-      // );
-
-      //! This is for Dev
       const archivePath = filePath.join(
         "\\\\media\\Marketing",
         "Labels",
-        "Test-Archive",
+        "Print-Shop-Archive",
         `Delivered-${dateForFolderFormatting}`
       );
+
+      //! This is for Dev
+    //   const archivePath = filePath.join(
+    //     "\\\\media\\Marketing",
+    //     "Labels",
+    //     "Test-Archive",
+    //     `Delivered-${dateForFolderFormatting}`
+    //   );
 
       const todaysOrders = await dbContext.Order.find({
         updatedOn: {
