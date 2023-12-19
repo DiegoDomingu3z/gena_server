@@ -3,10 +3,12 @@ import { dbContext } from "../db/DbContext";
 import { logger } from "../utils/Logger";
 import { PDFTextField } from "pdf-lib";
 import { PDFCheckBox } from "pdf-lib";
+
 const fs = require("fs");
 const filePath = require("path");
 const multer = require("multer");
 const pdfjs = require("pdfjs-dist");
+const labelSchema = dbContext.Label;
 
 class LabelsService {
   async findUser(token) {
@@ -72,7 +74,9 @@ class LabelsService {
       };
       if (data.isSerial == true) {
         labelData.currentSerialNum = data.currentSerialNum;
-        labelData.nextSerialsToPrint = `${data.currentSerialNum} - ${data.currentSerialNum + data.unitPack - 1}`
+        labelData.nextSerialsToPrint = `${data.currentSerialNum} - ${
+          data.currentSerialNum + data.unitPack - 1
+        }`;
       }
       const newDoc = await dbContext.Label.create(labelData);
       return newDoc;
@@ -95,14 +99,33 @@ class LabelsService {
     }
   }
 
-  async updateFileData(id, data) {
+  /**
+   * * Update file data
+   * * RELATIONAL DATA DELETION
+   * * ONLY RUNS FOR PRINTSHOP & ADMIN USERS
+   * @param {String} id
+   * @param {labelSchema} data
+   * @returns {Object} updated label
+   */
+
+  async updateSerialFileData(id, data) {
     try {
-      data["updatedOn"] = Date.now();
-      const updatedLabel = await dbContext.Label.findByIdAndUpdate(id, data);
-      // check if data.categoryName is different
-      // check if data.subCategoryName is different
-      // if they are delet the old file path and create the new file path
-      const newLabel = await dbContext.Label.findById(id);
+      const { newFileName, newBulkFileName, newStartingSerialNum, unitPack } =
+        data;
+      const serialRange = `${newStartingSerialNum} - ${
+        newStartingSerialNum + unitPack - 1
+      }`;
+      const updates = {
+        fileName: newFileName,
+        bulkFileName: newBulkFileName,
+        currentSerialNum: newStartingSerialNum,
+        nextSerialsToPrint: serialRange,
+        unitPack: unitPack,
+      };
+      const newLabel = await dbContext.Label.findByIdAndUpdate(id, data, {
+        returnOriginal: false,
+      });
+
       return newLabel;
     } catch (error) {
       logger.error(error);

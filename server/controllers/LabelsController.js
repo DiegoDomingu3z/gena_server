@@ -17,7 +17,7 @@ export class LabelsController extends BaseController {
       .post("/pdf/cat/:catId/subCat/:subCatId", this.uploadPDF)
       .post("/label/cat/:catId/subCat/:subCatId", this.createLabel)
       .put("/update-label-file/:id", this.updateFile)
-      .put("/update-label-db/:id", this.updateFileData)
+      .put("/update-label-db/:id", this.updateSerialFileData)
       .delete("/label/delete/:id", this.removeLabel)
       .get(
         "/get/category/:categoryId/subCategory/:subCatId",
@@ -217,7 +217,7 @@ export class LabelsController extends BaseController {
    * @returns {Object} updated label
    */
 
-  async updateFileData(req, res, next) {
+  async updateSerialFileData(req, res, next) {
     try {
       const token = req.header("Authorization");
       const user = await dbContext.Account.findOne({ accessToken: token });
@@ -226,7 +226,10 @@ export class LabelsController extends BaseController {
       } else {
         const labelId = req.params.id;
         const data = req.body;
-        const updatedDoc = await labelsService.updateFileData(labelId, data);
+        const updatedDoc = await labelsService.updateSerialFileData(
+          labelId,
+          data
+        );
         if (updatedDoc == 404) {
           res.status(404).send("Label Not Found");
         } else {
