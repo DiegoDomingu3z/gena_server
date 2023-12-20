@@ -37,13 +37,18 @@ class OrderService {
             }
           }
         }
-        if (needsApproval.length > 0) {
-          status = "waiting for approval";
+        // FOR DEVELOPMENT AND HIGHER PRIVILEGES
+        if (process.env.ENVIRONMENT == 'dev' ||
+        user.privileges == 'printshop' ||
+        user.privileges == 'admin' ||
+        user.privileges == "group-lead") {
+          status = "approved"
         } else {
-          status = "approved";
-        }
-        if (user.privileges == "group-lead") {
-          status = "approved";
+          if (needsApproval.length > 0) {
+            status = "waiting for approval";
+          } else {
+            status = "approved";
+          }
         }
         const sanatizedData = {
           creatorId: user._id,
@@ -55,11 +60,13 @@ class OrderService {
           qty: data.qty,
         };
         const createdOrder = await dbContext.Order.create(sanatizedData);
-        if (needsApproval.length > 0) {
-          // TODO UNCOMMENT TO SEND EMAILS OUT
-          await emailService.leadApprovalEmail(createdOrder);
+        if(process.env.ENVIRONMENT != 'dev'){
+            if (needsApproval.length > 0) {
+                // TODO UNCOMMENT TO SEND EMAILS OUT
+                await emailService.leadApprovalEmail(createdOrder);
+            }
+            emailService.successFullOrderSubmission(createdOrder);
         }
-        emailService.successFullOrderSubmission(createdOrder);
         return createdOrder;
       }
     } catch (error) {
@@ -104,12 +111,14 @@ class OrderService {
           options
         );
         const lab = await dbContext.Label.findById(label[0].labelId);
-        if (lab.isBulkLabel == false) {
-          await dbContext.Order.findOneAndUpdate(filter, {
-            status: "waiting for approval",
-          });
-          // TODO UNCOMMENT TO SEND EMAIL OUT TO LEAD ABOUT UPDATED LABEL
-          await emailService.leadApprovalEmail(updatedLabel);
+        if (process.env.ENVIRONMENT != 'dev'){
+            if (lab.isBulkLabel == false) {
+                await dbContext.Order.findOneAndUpdate(filter, {
+                    status: "waiting for approval",
+                });
+                // TODO UNCOMMENT TO SEND EMAIL OUT TO LEAD ABOUT UPDATED LABEL
+                await emailService.leadApprovalEmail(updatedLabel);
+            }
         }
         return updatedLabel;
       }
@@ -813,7 +822,9 @@ class OrderService {
             update,
             options
           );
-          await emailService.readyForPickupEmail(updatedOrder);
+          if (process.env.ENVIRONMENT != 'dev') {
+              await emailService.readyForPickupEmail(updatedOrder);
+          }
           return updatedOrder;
         }
       }
