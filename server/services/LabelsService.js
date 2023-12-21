@@ -4,9 +4,10 @@ import { logger } from "../utils/Logger";
 import { PDFTextField } from "pdf-lib";
 import { PDFCheckBox } from "pdf-lib";
 
+const fse = require("fs-extra");
 const fs = require("fs");
 const filePath = require("path");
-const multer = require("multer");
+const upload = require("multer");
 const pdfjs = require("pdfjs-dist");
 const labelSchema = dbContext.Label;
 
@@ -110,19 +111,19 @@ class LabelsService {
 
   async updateSerialFileData(id, data) {
     try {
-      const { newFileName, newBulkFileName, newStartingSerialNum, unitPack } =
-        data;
-      const serialRange = `${newStartingSerialNum} - ${
-        newStartingSerialNum + unitPack - 1
+      const { fileName, bulkFileName, currentSerialNum, unitPack } = data;
+      const serialRange = `${currentSerialNum} - ${
+        currentSerialNum + unitPack - 1
       }`;
+
       const updates = {
-        fileName: newFileName,
-        bulkFileName: newBulkFileName,
-        currentSerialNum: newStartingSerialNum,
+        fileName: fileName,
+        bulkFileName: bulkFileName,
+        currentSerialNum: currentSerialNum,
         nextSerialsToPrint: serialRange,
         unitPack: unitPack,
       };
-      const newLabel = await dbContext.Label.findByIdAndUpdate(id, data, {
+      const newLabel = await dbContext.Label.findByIdAndUpdate(id, updates, {
         returnOriginal: false,
       });
 
