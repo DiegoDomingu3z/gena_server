@@ -116,12 +116,15 @@ class LabelsService {
         currentSerialNum + unitPack - 1
       }`;
 
+      await this.removeLabel(id, true);
+
       const updates = {
         fileName: fileName,
         bulkFileName: bulkFileName,
         currentSerialNum: currentSerialNum,
         nextSerialsToPrint: serialRange,
         unitPack: unitPack,
+        updatedOn: Date.now(),
       };
       const newLabel = await dbContext.Label.findByIdAndUpdate(id, updates, {
         returnOriginal: false,
@@ -134,7 +137,7 @@ class LabelsService {
     }
   }
 
-  async removeLabel(id) {
+  async removeLabel(id, isReplacing) {
     const label = await dbContext.Label.findById(id);
     if (!label) {
       return Promise.resolve(404);
@@ -147,7 +150,10 @@ class LabelsService {
         "gena_2",
         "server",
         "images",
-        "pdflabels"
+        "pdflabels",
+        `${label.categoryName}`,
+        `${label.subCategoryName}`,
+        `${label.fileName}`
       );
       let bulkPath;
       if (label.isBulkLabel == true) {
@@ -160,7 +166,9 @@ class LabelsService {
           "server",
           "images",
           "bulk",
-          `${label.name}`
+          `${label.categoryName}`,
+          `${label.subCategoryName}`,
+          `${label.bulkFileName}`
         );
         await fs.unlink(bulkPath, (err) => {
           if (err) {
@@ -177,12 +185,15 @@ class LabelsService {
         }
         return Promise.resolve(200);
       });
-      await dbContext.Order.updateMany(
-        {},
-        { $pull: { labels: { labelId: id } } }
-      );
-      await dbContext.Order.deleteMany({ labels: [] });
-      await dbContext.Label.findByIdAndDelete(id);
+
+      if (!isReplacing) {
+        await dbContext.Order.updateMany(
+          {},
+          { $pull: { labels: { labelId: id } } }
+        );
+        await dbContext.Order.deleteMany({ labels: [] });
+        await dbContext.Label.findByIdAndDelete(id);
+      }
 
       return Promise.resolve(id);
     }
