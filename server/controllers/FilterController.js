@@ -1,9 +1,10 @@
+import { filterService } from "../services/FilterService";
 import BaseController from "../utils/BaseController";
 import { logger } from "../utils/Logger";
 
 export class FilterController extends BaseController{
     constructor(){
-        super('api/filter')
+        super('api/export')
         this.router
         // .get('/accounts', this.filterAccounts)
         // .get('/category', this.filterCategories)
@@ -57,8 +58,9 @@ export class FilterController extends BaseController{
 
     async filterLabelDefects(req, res, next){
         try {
-
-            res.send({value: "THIS IS WORKING"})
+            const query = req.query
+            const data = await filterService.filterLabelDefects(query)
+            res.status(200).send(data)
         } catch (error) {
             logger.error(error)
             next(error)

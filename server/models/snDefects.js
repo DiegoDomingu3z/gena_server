@@ -8,6 +8,7 @@ export const snDefects = new Schema({
             orderId: { type: ObjectId, ref: 'Order', required: true},
             sn: {type: Array},
             comment: {type: String},
+            docNum: {type: String},
             uploadedOn: {type: Date, required: true, default: Date.now},
             updatedOn: {type: Date, required: true, default: Date.now}
         },
