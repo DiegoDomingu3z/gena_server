@@ -3,10 +3,13 @@ import { dbContext } from "../db/DbContext";
 import { logger } from "../utils/Logger";
 import { PDFTextField } from "pdf-lib";
 import { PDFCheckBox } from "pdf-lib";
+
+const fse = require("fs-extra");
 const fs = require("fs");
 const filePath = require("path");
-const multer = require("multer");
+const upload = require("multer");
 const pdfjs = require("pdfjs-dist");
+const labelSchema = dbContext.Label;
 
 class LabelsService {
   async findUser(token) {
@@ -72,7 +75,9 @@ class LabelsService {
       };
       if (data.isSerial == true) {
         labelData.currentSerialNum = data.currentSerialNum;
-        labelData.nextSerialsToPrint = `${data.currentSerialNum} - ${data.currentSerialNum + data.unitPack - 1}`
+        labelData.nextSerialsToPrint = `${data.currentSerialNum} - ${
+          data.currentSerialNum + data.unitPack - 1
+        }`;
       }
       const newDoc = await dbContext.Label.create(labelData);
       return newDoc;
@@ -95,14 +100,36 @@ class LabelsService {
     }
   }
 
-  async updateFileData(id, data) {
+  /**
+   * * Update file data
+   * * RELATIONAL DATA DELETION
+   * * ONLY RUNS FOR PRINTSHOP & ADMIN USERS
+   * @param {String} id
+   * @param {labelSchema} data
+   * @returns {Object} updated label
+   */
+
+  async updateSerialFileData(id, data) {
     try {
-      data["updatedOn"] = Date.now();
-      const updatedLabel = await dbContext.Label.findByIdAndUpdate(id, data);
-      // check if data.categoryName is different
-      // check if data.subCategoryName is different
-      // if they are delet the old file path and create the new file path
-      const newLabel = await dbContext.Label.findById(id);
+      const { fileName, bulkFileName, currentSerialNum, unitPack } = data;
+      const serialRange = `${currentSerialNum} - ${
+        currentSerialNum + unitPack - 1
+      }`;
+
+      await this.removeLabel(id, true);
+
+      const updates = {
+        fileName: fileName,
+        bulkFileName: bulkFileName,
+        currentSerialNum: currentSerialNum,
+        nextSerialsToPrint: serialRange,
+        unitPack: unitPack,
+        updatedOn: Date.now(),
+      };
+      const newLabel = await dbContext.Label.findByIdAndUpdate(id, updates, {
+        returnOriginal: false,
+      });
+
       return newLabel;
     } catch (error) {
       logger.error(error);
@@ -110,7 +137,7 @@ class LabelsService {
     }
   }
 
-  async removeLabel(id) {
+  async removeLabel(id, isReplacing) {
     const label = await dbContext.Label.findById(id);
     if (!label) {
       return Promise.resolve(404);
@@ -123,7 +150,10 @@ class LabelsService {
         "gena_2",
         "server",
         "images",
-        "pdflabels"
+        "pdflabels",
+        `${label.categoryName}`,
+        `${label.subCategoryName}`,
+        `${label.fileName}`
       );
       let bulkPath;
       if (label.isBulkLabel == true) {
@@ -136,7 +166,9 @@ class LabelsService {
           "server",
           "images",
           "bulk",
-          `${label.name}`
+          `${label.categoryName}`,
+          `${label.subCategoryName}`,
+          `${label.bulkFileName}`
         );
         await fs.unlink(bulkPath, (err) => {
           if (err) {
@@ -153,12 +185,15 @@ class LabelsService {
         }
         return Promise.resolve(200);
       });
-      await dbContext.Order.updateMany(
-        {},
-        { $pull: { labels: { labelId: id } } }
-      );
-      await dbContext.Order.deleteMany({ labels: [] });
-      await dbContext.Label.findByIdAndDelete(id);
+
+      if (!isReplacing) {
+        await dbContext.Order.updateMany(
+          {},
+          { $pull: { labels: { labelId: id } } }
+        );
+        await dbContext.Order.deleteMany({ labels: [] });
+        await dbContext.Label.findByIdAndDelete(id);
+      }
 
       return Promise.resolve(id);
     }

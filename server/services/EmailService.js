@@ -468,9 +468,9 @@ class EmailService {
       });
       const email = emails[user.department];
       if (user.email) {
-        (cc = user.email), "KristinK@inventive-group.com";
+        (cc = user.email), "";
       } else {
-        cc = "KristinK@inventive-group.com";
+        cc = "";
       }
       let docNums = [];
       for (let i = 0; i < order.labels.length; i++) {
