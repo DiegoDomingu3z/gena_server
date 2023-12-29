@@ -29,7 +29,8 @@ class DefectService{
                             {
                                 orderId: data.orderId,
                                 sn: data.sn,
-                                comment: data.comment
+                                comment: data.comment,
+                                docNum: data.docNum
                             }
                         ]
                     }
@@ -40,7 +41,8 @@ class DefectService{
                     const update = { $push: { defectLogs: {
                         orderId: data.orderId,
                         sn: data.sn,
-                        comment: data.comment
+                        comment: data.comment,
+                        docNum: data.docNum
                     } }, $set: { updatedOn: new Date()} }
                     const options = { returnOriginal: false };
                     const updatedDoc = await dbContext.Defects.findOneAndUpdate(filter, update, options)
