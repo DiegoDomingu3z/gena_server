@@ -1,5 +1,11 @@
+import mongoose from "mongoose";
 import { dbContext } from "../db/DbContext";
 import { logger } from "../utils/Logger"
+// import { mkConfig, generateCsv, asString } from "export-to-csv";
+// import { writeFile } from "node:fs";
+// import { Buffer } from "node:buffer";
+
+const createCsvWriter = require('csv-writer').createObjectCsvWriter;
 
 class FilterService {
 
@@ -7,7 +13,23 @@ class FilterService {
         try {
             const dateFrom = new Date(query.dateFrom)
             const dateTo = new Date(query.dateTo)
-              const data2 = await dbContext.Defects.aggregate([
+            let timestamp;
+            switch (query.timestamp) {
+              case 'createdOn':
+                timestamp = [
+                  { $gte: ["$$log.uploadedOn", dateFrom] },
+                  { $lte: ["$$log.uploadedOn", dateTo] }
+                ]
+                break;
+              case 'updatedOn':
+                 timestamp = [
+                  { $gte: ["$$log.updatedOn", dateFrom] },
+                  { $lte: ["$$log.updatedOn", dateTo] }
+                 ]
+                break;
+            }
+            const pipeline = [
+              
                 {
                   $project: {
                     defectLogs: {
@@ -15,10 +37,7 @@ class FilterService {
                         input: "$defectLogs",
                         as: "log",
                         cond: {
-                          $and: [
-                            { $gte: ["$$log.uploadedOn", dateFrom] },
-                            { $lte: ["$$log.uploadedOn", dateTo] }
-                          ]
+                          $and: timestamp
                         }
                       }
                     }
@@ -59,7 +78,17 @@ class FilterService {
                     defectLogs: { $push: "$defectLogs" }
                   }
                 }
-              ]);
+              
+            ]
+            if (query.labelId != '*') {
+              pipeline.unshift({
+                $match: {
+                  labelId: mongoose.Types.ObjectId(query.labelId)
+                }
+              })
+            }
+            logger.log(pipeline)
+              const data2 = await dbContext.Defects.aggregate(pipeline);
                    
               logger.log(data2)
               return data2
@@ -68,6 +97,7 @@ class FilterService {
             return error
         }
     }
+
 
 }
 
