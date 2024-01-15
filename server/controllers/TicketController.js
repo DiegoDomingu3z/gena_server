@@ -1,0 +1,53 @@
+import BaseController from "../utils/BaseController";
+import { logger } from "../utils/Logger";
+import { ticketService } from "../services/TicketsService";
+
+export class TicketController extends BaseController {
+  constructor() {
+    super("/api/ticket");
+    this.router
+      .post("/create", this.createTicket)
+      .put("/update/:id", this.updateTicket)
+      .delete("/delete/:id", this.deleteTicket)
+      .get("/tickets", this.getTickets);
+  }
+
+  async createTicket(req, res) {
+    try {
+      const data = req.body;
+      const token = req.header("Authorization");
+      const ticket = await ticketService.createTicket(token, data);
+      res.send(ticket);
+    } catch (error) {
+      logger.log(error);
+    }
+  }
+  async updateTicket(req, res) {
+    try {
+      const data = req.body;
+      const ticketUpdate = await ticketService.updateTicket(data);
+      res.send(ticketUpdate);
+    } catch (error) {
+      logger.log(error);
+    }
+  }
+  // async deleteTicket(req, res) {
+  //   try {
+  //     const data = req.body;
+  //     const token = req.header("Authorization");
+  //     const deleted = await ticketService.deleteTicket(token, data);
+  //     res.(deleted);
+  //   } catch (error) {
+  //     logger.error(error);
+  //   }
+  // }
+  async getTickets(req, res) {
+    try {
+      const token = req.header("Authorization");
+      const tickets = await ticketService.getTickets(token);
+      res.send(tickets);
+    } catch (error) {
+      logger.error(error);
+    }
+  }
+}
