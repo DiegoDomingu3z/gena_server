@@ -8,6 +8,7 @@ import { MaterialSchema } from "../models/Material";
 import { DepartmentSchema } from "../models/Departments";
 import { ArchivedOrderSchema } from "../models/ArchivedOrder";
 import { snDefects } from "../models/snDefects";
+import { TicketSchema } from "../models/Ticket";
 class DbContext {
   Account = mongoose.model("Account", AccountSchema);
 
@@ -25,7 +26,9 @@ class DbContext {
 
   ArchivedOrder = mongoose.model("ArchivedOrder", ArchivedOrderSchema);
 
-  Defects = mongoose.model("snDefects", snDefects)
+  Defects = mongoose.model("snDefects", snDefects);
+
+  Ticket = mongoose.model("Ticket", TicketSchema);
 }
 
 export const dbContext = new DbContext();
