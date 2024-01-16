@@ -6,6 +6,7 @@ import { logger } from "./utils/Logger";
 import { createServer } from "http";
 import { orderService } from "./services/OrderService";
 import { CronJob } from "cron";
+import { ticketService } from "./services/TicketsService";
 const mongoose = require("mongoose");
 
 const app = express();
@@ -48,6 +49,17 @@ const dailyArchive = new CronJob(
   "0 18 * * *",
   async () => {
     await orderService.dailyArchive();
+  },
+  null,
+  true,
+  "America/Denver"
+);
+
+// Delete Completed tickets that are older than a week old
+const dailyTicketDeletion = new CronJob(
+  "0 18 * * *",
+  async () => {
+    await ticketService.deleteCompletedTickets();
   },
   null,
   true,

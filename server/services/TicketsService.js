@@ -12,12 +12,16 @@ class TicketService {
   async createTicket(token, data) {
     try {
       const { subject, description, priority } = data;
-      const { _id: userId, firstName } = await dbContext.Account.findOne({
+      const {
+        _id: userId,
+        firstName,
+        lastName,
+      } = await dbContext.Account.findOne({
         accessToken: token,
       });
       const ticketData = {
         creatorId: userId,
-        creatorName: firstName,
+        creatorName: `${firstName} ${lastName}`,
         subject: subject,
         description: description,
         priority: priority,
@@ -79,6 +83,40 @@ class TicketService {
       }
 
       return tickets;
+    } catch (error) {
+      logger.error(error);
+      return error;
+    }
+  }
+
+  /**
+   ** Delete Completed tickets that are older than a week old
+   */
+  async deleteCompletedTickets() {
+    const oneWeekAgo = new Date();
+    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+
+    const today = new Date();
+
+    const formatDate = (dateString) => {
+      const date = new Date(dateString);
+      const day = date.getDate();
+      const month = date.getMonth() + 1;
+      const year = date.getFullYear();
+      return `${month}/${day}/${year}`;
+    };
+
+    const formattedToday = formatDate(today);
+    const formattedOneWeekAgo = formatDate(oneWeekAgo);
+    try {
+      await dbContext.Ticket.deleteMany({
+        status: "Completed",
+        updatedOn: { $lt: oneWeekAgo },
+      });
+      logger.log("_".repeat(100));
+      logger.log(`DAILY MAINTENANCE ${formattedToday}`);
+      logger.log(`DELETED ORDERS FROM ${formattedOneWeekAgo}:`);
+      logger.log("_".repeat(100));
     } catch (error) {
       logger.error(error);
       return error;
