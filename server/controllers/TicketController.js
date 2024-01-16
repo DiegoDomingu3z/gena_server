@@ -8,7 +8,7 @@ export class TicketController extends BaseController {
     this.router
       .post("/create", this.createTicket)
       .put("/update/:id", this.updateTicket)
-      .delete("/delete/:id", this.deleteTicket)
+      // .delete("/delete/:id", this.deleteTicket)
       .get("/tickets", this.getTickets);
   }
 
@@ -25,7 +25,13 @@ export class TicketController extends BaseController {
   async updateTicket(req, res) {
     try {
       const data = req.body;
-      const ticketUpdate = await ticketService.updateTicket(data);
+      const ticketId = req.params.id;
+      const token = req.header("Authorization");
+      const ticketUpdate = await ticketService.updateTicket(
+        data,
+        ticketId,
+        token
+      );
       res.send(ticketUpdate);
     } catch (error) {
       logger.log(error);

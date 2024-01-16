@@ -12,10 +12,12 @@ class TicketService {
   async createTicket(token, data) {
     try {
       const { subject, description, priority } = data;
-      const user = await dbContext.Account.find({ accessToken: token });
+      const { _id: userId, firstName } = await dbContext.Account.findOne({
+        accessToken: token,
+      });
       const ticketData = {
-        creatorId: user._id,
-        creatorName: user.firstName,
+        creatorId: userId,
+        creatorName: firstName,
         subject: subject,
         description: description,
         priority: priority,
@@ -33,13 +35,25 @@ class TicketService {
    * @param {Object} data ticket
    * @return {Object} Updated Ticket
    */
-  async updateTicket(data) {
+  async updateTicket(data, ticketId, token) {
     try {
       const { status } = data;
-      const ticket = await dbContext.Ticket.findByIdAndUpdate(data._id, {
+      const user = await dbContext.Account.findOne({ accessToken: token });
+      const { firstName } = user;
+      let update = {
         status: status,
-        returnOriginal: false,
-      });
+        updatedOn: Date.now(),
+      };
+      if (status == "Complete") {
+        update = { ...update, completedBy: firstName };
+      } else {
+        update = { ...update, claimedBy: firstName };
+      }
+      const ticket = await dbContext.Ticket.findByIdAndUpdate(
+        ticketId,
+        update,
+        { returnOriginal: false }
+      );
       return ticket;
     } catch (error) {
       logger.error(error);
@@ -54,7 +68,7 @@ class TicketService {
    */
   async getTickets(token) {
     try {
-      const user = await dbContext.Account.find({ accessToken: token });
+      const user = await dbContext.Account.findOne({ accessToken: token });
       const { _id: userId, privileges } = user;
       let tickets;
 
