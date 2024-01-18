@@ -1,6 +1,6 @@
 import { dbContext } from "../db/DbContext";
 import { logger } from "../utils/Logger";
-import { PDFDocument } from "pdf-lib";
+import { PDFDocument, StandardFonts  } from "pdf-lib";
 const fs = require("fs");
 const filePath = require("path");
 const util = require("util");
@@ -75,7 +75,15 @@ class PrintShopService {
           const form = pdfDoc.getForm();
           const fieldNames = form.getFields().map((field) => field.getName());
           // if kanban (files you put text on do the loop)
+          let customFont;
           if (findOrder.isKanban == true) {
+            let impactFont = filePath.join(__dirname, '../utils/fonts/impact.ttf')
+            const customFontBytes = fs.readFileSync(impactFont);
+            if (findOrder.categoryName == 'floor-labels ') {
+              customFont = await pdfDoc.embedFont(customFontBytes)
+            } else {
+              customFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold)
+            }
             for (let i = 0; i < findOrder.fields.length; i++) {
               try {
                 const field = findOrder.fields[i];
@@ -90,8 +98,10 @@ class PrintShopService {
                 } else {
                   const fieldToFill = form.getTextField(inputName);
                   fieldToFill.setText(label.textToPut[i].text);
+                  fieldToFill.updateAppearances(customFont.name)
                 }
               } catch (error) {
+                logger.error(error)
                 const field = findOrder.fields[i];
                 const inputName = field.name;
                 const checkbox = form.getCheckBox(inputName);
@@ -100,6 +110,7 @@ class PrintShopService {
                 }
               }
             }
+
           } else if (findOrder.isSerial) {
             // do separate loop if serial number so it can save serialNum in database for each file iteration
             for (let l = 0; l < label.qty; l++) {
