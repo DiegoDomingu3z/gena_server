@@ -115,7 +115,7 @@ class TicketService {
       });
       logger.log("_".repeat(100));
       logger.log(`DAILY MAINTENANCE ${formattedToday}`);
-      logger.log(`DELETED ORDERS FROM ${formattedOneWeekAgo}:`);
+      logger.log(`DELETED TICKETS FROM ${formattedOneWeekAgo}`);
       logger.log("_".repeat(100));
     } catch (error) {
       logger.error(error);

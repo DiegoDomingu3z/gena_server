@@ -9,10 +9,12 @@ class EmailService {
     try {
       const user = await orderService.checkIfUserExists(token);
       let email;
+      let cc;
       let lead = null;
       let group = null;
       if (user.email == "" || user.email == undefined) {
         email = "diegod@inventive-group.com";
+        cc = "jacobp@inventive-group.com";
       } else {
         email = user.email;
       }
@@ -44,6 +46,7 @@ class EmailService {
         });
         await transporter.sendMail({
           from: `${email}`, // sender address
+          cc: `${cc}`,
           to: `${data.email}`, // list of receivers
           subject: "New Gena Credentials", // Subject line
           html: `
@@ -73,10 +76,12 @@ class EmailService {
   async sendUpdatedCredentials(data, token, pass) {
     const user = await orderService.checkIfUserExists(token);
     let email;
+    let cc;
     let lead = null;
     let group = null;
     if (user.email == "" || user.email == undefined) {
       email = "diegod@inventive-group.com";
+      cc = "jacobp@inventive-group.com";
     } else {
       email = user.email;
     }
@@ -106,6 +111,7 @@ class EmailService {
       });
       await transporter.sendMail({
         from: `${email}`, // sender address
+        cc: `${cc}`,
         to: `${data.email}`, // list of receivers
         subject: "New Gena Credentials", // Subject line
         html: `
@@ -177,7 +183,7 @@ class EmailService {
         email = lead.email;
       }
       let subject = `${data.firstName}'s Gena Account has been updated`;
-      let cc = "diegod@inventive-group.com";
+      let cc = "diegod@inventive-group.com, jacobp@inventive-group.com";
       let body = `
                <!DOCTYPE html>
                <html lang="en">
@@ -468,9 +474,9 @@ class EmailService {
       });
       const email = emails[user.department];
       if (user.email) {
-        (cc = user.email), "";
+        (cc = user.email), "KristinK@inventive-group.com";
       } else {
-        cc = "";
+        cc = "KristinK@inventive-group.com";
       }
       let docNums = [];
       for (let i = 0; i < order.labels.length; i++) {

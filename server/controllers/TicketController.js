@@ -1,6 +1,7 @@
 import BaseController from "../utils/BaseController";
 import { logger } from "../utils/Logger";
 import { ticketService } from "../services/TicketsService";
+import { emailService } from "../services/EmailService";
 
 export class TicketController extends BaseController {
   constructor() {
@@ -16,7 +17,7 @@ export class TicketController extends BaseController {
       const data = req.body;
       const token = req.header("Authorization");
       const ticket = await ticketService.createTicket(token, data);
-      // await emailService.ticketingSystem(data, token);
+      await emailService.ticketingSystem(data, token);
       res.send(ticket);
     } catch (error) {
       logger.log(error);

@@ -2,6 +2,7 @@ import { dbContext } from "../db/DbContext";
 import { logger } from "../utils/Logger";
 import { PDFDocument, StandardFonts  } from "pdf-lib";
 const fs = require("fs");
+import fontkit from '@pdf-lib/fontkit';
 const filePath = require("path");
 const util = require("util");
 const mkdir = util.promisify(fs.mkdir);
@@ -77,9 +78,10 @@ class PrintShopService {
           // if kanban (files you put text on do the loop)
           let customFont;
           if (findOrder.isKanban == true) {
-            let impactFont = filePath.join(__dirname, '../utils/fonts/impact.ttf')
-            const customFontBytes = fs.readFileSync(impactFont);
-            if (findOrder.categoryName == 'floor-labels ') {
+            if (findOrder.subCategoryName == 'floor-labels') {
+              pdfDoc.registerFontkit(fontkit);
+              let impactFont = filePath.join(__dirname, '../utils/fonts/impact.ttf')
+              const customFontBytes = fs.readFileSync(impactFont);
               customFont = await pdfDoc.embedFont(customFontBytes)
             } else {
               customFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold)
@@ -98,7 +100,7 @@ class PrintShopService {
                 } else {
                   const fieldToFill = form.getTextField(inputName);
                   fieldToFill.setText(label.textToPut[i].text);
-                  fieldToFill.updateAppearances(customFont.name)
+                  fieldToFill.updateAppearances(customFont)
                 }
               } catch (error) {
                 logger.error(error)
